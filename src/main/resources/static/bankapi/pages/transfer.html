@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankAPI — Transferência</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .transfer-wrap { max-width: 520px; }
+    .type-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+    .type-tab { padding: 8px 18px; border: 0.5px solid var(--border-md); border-radius: var(--radius-pill); font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.12s; }
+    .type-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+    .confirm-box { background: var(--bg-muted); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
+    .confirm-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
+    .confirm-row:last-child { border-bottom: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="brand">Bank<span>API</span></div>
+    <nav>
+      <div class="nav-section-label">Principal</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="accounts.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Contas
+      </a>
+      <a href="transactions.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6l4-4 4 4M8 18l4 4 4-4M4 12h16"/></svg>
+        Transações
+      </a>
+      <div class="nav-section-label">Operações</div>
+      <a href="transfer.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Transferência
+      </a>
+      <a href="pix.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 10L21 2M3 21l8-8M3 3l8 8-8 8M21 21l-8-8 8-8"/></svg>
+        Pix
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar">JS</div>
+        <div><div class="user-name">João Silva</div><div class="user-role">Conta corrente</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Transferência</div>
+        <div class="page-subtitle">TED, TEF e DOC</div>
+      </div>
+    </div>
+
+    <div class="transfer-wrap">
+      <!-- Steps -->
+      <div class="steps">
+        <div class="step done" id="step1"><div class="step-dot">✓</div>Tipo</div>
+        <div class="step active" id="step2"><div class="step-dot">2</div>Destino</div>
+        <div class="step" id="step3"><div class="step-dot">3</div>Valor</div>
+        <div class="step" id="step4"><div class="step-dot">4</div>Confirmar</div>
+      </div>
+
+      <!-- Tipo de transferência -->
+      <div class="section-label">Tipo de transferência</div>
+      <div class="type-tabs">
+        <button class="type-tab active" onclick="selectType(this)">TED</button>
+        <button class="type-tab" onclick="selectType(this)">TEF</button>
+        <button class="type-tab" onclick="selectType(this)">DOC</button>
+      </div>
+
+      <!-- Dados do destinatário -->
+      <div class="card mb-3" id="formDestino">
+        <div class="form-group">
+          <label>Instituição bancária</label>
+          <select>
+            <option value="">Selecione o banco</option>
+            <option>001 — Banco do Brasil</option>
+            <option>033 — Santander</option>
+            <option>237 — Bradesco</option>
+            <option>341 — Itaú Unibanco</option>
+            <option>422 — Safra</option>
+            <option>756 — Sicoob</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Agência</label>
+            <input type="text" placeholder="0000" maxlength="4" />
+          </div>
+          <div class="form-group">
+            <label>Tipo de conta</label>
+            <select>
+              <option>Corrente</option>
+              <option>Poupança</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Número da conta</label>
+            <input type="text" placeholder="00000-0" />
+          </div>
+          <div class="form-group">
+            <label>CPF / CNPJ do titular</label>
+            <input type="text" placeholder="000.000.000-00" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nome do favorecido</label>
+          <input type="text" placeholder="Nome completo" />
+        </div>
+      </div>
+
+      <!-- Valor e agendamento -->
+      <div class="card mb-3">
+        <div class="form-group">
+          <label>Valor</label>
+          <div class="input-prefix">
+            <span class="input-prefix-label">R$</span>
+            <input type="text" class="amount-input" placeholder="0,00" style="border:none;background:transparent;font-size:18px;padding:10px 12px;" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Data de envio</label>
+            <input type="date" />
+          </div>
+          <div class="form-group">
+            <label>Conta de origem</label>
+            <select>
+              <option>Corrente **** 4821</option>
+              <option>Poupança **** 9302</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descrição (opcional)</label>
+          <input type="text" placeholder="Ex: pagamento aluguel julho" />
+        </div>
+      </div>
+
+      <!-- Resumo -->
+      <div class="confirm-box">
+        <div class="section-label" style="margin-bottom:12px;">Resumo da operação</div>
+        <div class="confirm-row"><span class="text-muted">Tipo</span><span>TED</span></div>
+        <div class="confirm-row"><span class="text-muted">Favorecido</span><span>—</span></div>
+        <div class="confirm-row"><span class="text-muted">Banco</span><span>—</span></div>
+        <div class="confirm-row"><span class="text-muted">Data</span><span>—</span></div>
+        <div class="confirm-row"><span class="text-muted">Valor</span><span>R$ —</span></div>
+        <div class="confirm-row"><span>Total debitado</span><span>R$ —</span></div>
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-outline" onclick="history.back()">Cancelar</button>
+        <button class="btn btn-primary" style="flex:1">Confirmar transferência →</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  function selectType(btn) {
+    document.querySelectorAll('.type-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

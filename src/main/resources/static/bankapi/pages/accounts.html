@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankAPI — Contas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .account-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 2rem; }
+    .account-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; background: var(--bg); }
+    .account-card.primary { border-color: var(--green); }
+    .ac-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-hint); margin-bottom: 0.5rem; }
+    .ac-number { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 1rem; }
+    .ac-balance { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1rem; }
+    .ac-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ac-tag { display: inline-flex; padding: 2px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; background: var(--green-light); color: var(--green-dark); margin-bottom: 8px; }
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+    .filter-btn { padding: 6px 14px; border: 0.5px solid var(--border-md); border-radius: var(--radius-pill); font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted); }
+    .filter-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="brand">Bank<span>API</span></div>
+    <nav>
+      <div class="nav-section-label">Principal</div>
+      <a href="dashboard.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="accounts.html" class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        Contas
+      </a>
+      <a href="transactions.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6l4-4 4 4M8 18l4 4 4-4M4 12h16"/></svg>
+        Transações
+      </a>
+      <div class="nav-section-label">Operações</div>
+      <a href="transfer.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Transferência
+      </a>
+      <a href="pix.html" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 10L21 2M3 21l8-8M3 3l8 8-8 8M21 21l-8-8 8-8"/></svg>
+        Pix
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar">JS</div>
+        <div><div class="user-name">João Silva</div><div class="user-role">Conta corrente</div></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Contas</div>
+        <div class="page-subtitle">Gerencie suas contas e extratos</div>
+      </div>
+      <button class="btn btn-primary">+ Nova conta</button>
+    </div>
+
+    <!-- Cartões de conta -->
+    <div class="account-cards">
+      <div class="account-card primary">
+        <div class="ac-tag">Principal</div>
+        <div class="ac-label">Conta corrente</div>
+        <div class="ac-number">Ag. 0001 · **** **** 4821</div>
+        <div class="ac-balance">R$ 18.430,00</div>
+        <div class="ac-actions">
+          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">Extrato</button>
+          <button class="btn btn-ghost" style="font-size:13px;">Compartilhar dados</button>
+        </div>
+      </div>
+      <div class="account-card">
+        <div class="ac-label">Poupança</div>
+        <div class="ac-number">Ag. 0001 · **** **** 9302</div>
+        <div class="ac-balance">R$ 6.400,00</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem;">Rendimento: 0,5% a.m. · R$ 32,00 este mês</div>
+        <div class="ac-actions">
+          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">Extrato</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Extrato unificado -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <div class="page-title" style="font-size:16px;">Extrato unificado</div>
+      <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">Exportar PDF</button>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterActive(this)">Todos</button>
+      <button class="filter-btn" onclick="filterActive(this)">Entradas</button>
+      <button class="filter-btn" onclick="filterActive(this)">Saídas</button>
+      <button class="filter-btn" onclick="filterActive(this)">Pix</button>
+      <button class="filter-btn" onclick="filterActive(this)">TED/TEF</button>
+      <button class="filter-btn" onclick="filterActive(this)">Boleto</button>
+    </div>
+
+    <div class="card">
+      <div class="tx-item">
+        <div class="tx-left"><div class="tx-icon in">↓</div><div><div class="tx-name">Depósito</div><div class="tx-meta">02 jul · Corrente</div></div></div>
+        <div style="text-align:right"><div class="tx-amount in">+ R$ 500,00</div><span class="badge badge-success">Concluído</span></div>
+      </div>
+      <div class="tx-item">
+        <div class="tx-left"><div class="tx-icon in">↓</div><div><div class="tx-name">Salário — Acme Corp</div><div class="tx-meta">01 jul · Corrente · TED</div></div></div>
+        <div style="text-align:right"><div class="tx-amount in">+ R$ 7.500,00</div><span class="badge badge-success">Concluído</span></div>
+      </div>
+      <div class="tx-item">
+        <div class="tx-left"><div class="tx-icon in">↓</div><div><div class="tx-name">Rendimento Poupança</div><div class="tx-meta">01 jul · Poupança</div></div></div>
+        <div style="text-align:right"><div class="tx-amount in">+ R$ 32,00</div><span class="badge badge-success">Concluído</span></div>
+      </div>
+      <div class="tx-item">
+        <div class="tx-left"><div class="tx-icon out">↑</div><div><div class="tx-name">TED para Itaú — Ana Castro</div><div class="tx-meta">30 jun · Corrente · TED</div></div></div>
+        <div style="text-align:right"><div class="tx-amount out">- R$ 1.200,00</div><span class="badge badge-warning">Processando</span></div>
+      </div>
+      <div class="tx-item">
+        <div class="tx-left"><div class="tx-icon out">↑</div><div><div class="tx-name">Pix — Maria Souza</div><div class="tx-meta">28 jun · Corrente · Pix</div></div></div>
+        <div style="text-align:right"><div class="tx-amount out">- R$ 350,00</div><span class="badge badge-success">Concluído</span></div>
+      </div>
+      <div class="tx-item">
+        <div class="tx-left"><div class="tx-icon out">↑</div><div><div class="tx-name">Boleto — Claro</div><div class="tx-meta">25 jun · Corrente · Boleto</div></div></div>
+        <div style="text-align:right"><div class="tx-amount out">- R$ 89,90</div><span class="badge badge-success">Concluído</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  function filterActive(btn) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+</script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import com.leonardo.bankapi.repository.UserRepository;
 import com.leonardo.bankapi.dto.UserRequest;
 import com.leonardo.bankapi.dto.UserResponse;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
 import java.util.stream.Collectors;
