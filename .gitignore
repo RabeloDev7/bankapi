@@ -44,3 +44,10 @@ Thumbs.db
 # Secrets - NUNCA commitar
 application-local.properties
 *.env
+
+# Arquivo de instrucoes do agente (nao deve ir para o repo)
+CLAUDE.md
+
+# Artefatos invalidos gerados por erro de shell
+gitattributes
+"{css,pages,components}"

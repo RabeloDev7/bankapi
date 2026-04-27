@@ -1,8 +1,0 @@
-# Ignora arquivos HTML para estatística de linguagem
-*.html linguist-detectable=false
-*.css linguist-detectable=false
-*.js linguist-detectable=false
-
-# Priorizar Java
-*.java linguist-language=Java
-

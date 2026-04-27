@@ -9,11 +9,11 @@
   <link rel="stylesheet" href="../css/style.css" />
   <style>
     .transfer-wrap { max-width: 520px; }
-    .type-tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
-    .type-tab { padding: 8px 18px; border: 0.5px solid var(--border-md); border-radius: var(--radius-pill); font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted); transition: all 0.12s; }
-    .type-tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+    .msg { font-size: 13px; margin-bottom: 1rem; padding: 10px 14px; border-radius: 8px; display: none; }
+    .msg.error   { background: #fce4ec; color: #c62828; }
+    .msg.success { background: #e8f5e9; color: #2e7d32; }
     .confirm-box { background: var(--bg-muted); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1rem; }
-    .confirm-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 6px 0; border-bottom: 0.5px solid var(--border); }
+    .confirm-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 7px 0; border-bottom: 0.5px solid var(--border); }
     .confirm-row:last-child { border-bottom: none; font-weight: 600; }
   </style>
 </head>
@@ -32,10 +32,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
         Contas
       </a>
-      <a href="transactions.html" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6l4-4 4 4M8 18l4 4 4-4M4 12h16"/></svg>
-        Transações
-      </a>
       <div class="nav-section-label">Operações</div>
       <a href="transfer.html" class="nav-item active">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -45,11 +41,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 10L21 2M3 21l8-8M3 3l8 8-8 8M21 21l-8-8 8-8"/></svg>
         Pix
       </a>
+      <div class="nav-section-label">Conta</div>
+      <a href="#" class="nav-item" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair
+      </a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="avatar">JS</div>
-        <div><div class="user-name">João Silva</div><div class="user-role">Conta corrente</div></div>
+        <div class="avatar" id="avatarInitials">--</div>
+        <div><div class="user-name" id="sidebarName">...</div><div class="user-role">Conta corrente</div></div>
       </div>
     </div>
   </aside>
@@ -58,122 +59,158 @@
     <div class="page-header">
       <div>
         <div class="page-title">Transferência</div>
-        <div class="page-subtitle">TED, TEF e DOC</div>
+        <div class="page-subtitle">Envie dinheiro para outra conta BankAPI</div>
       </div>
     </div>
 
     <div class="transfer-wrap">
-      <!-- Steps -->
-      <div class="steps">
-        <div class="step done" id="step1"><div class="step-dot">✓</div>Tipo</div>
-        <div class="step active" id="step2"><div class="step-dot">2</div>Destino</div>
-        <div class="step" id="step3"><div class="step-dot">3</div>Valor</div>
-        <div class="step" id="step4"><div class="step-dot">4</div>Confirmar</div>
-      </div>
+      <div id="msg" class="msg"></div>
 
-      <!-- Tipo de transferência -->
-      <div class="section-label">Tipo de transferência</div>
-      <div class="type-tabs">
-        <button class="type-tab active" onclick="selectType(this)">TED</button>
-        <button class="type-tab" onclick="selectType(this)">TEF</button>
-        <button class="type-tab" onclick="selectType(this)">DOC</button>
-      </div>
-
-      <!-- Dados do destinatário -->
-      <div class="card mb-3" id="formDestino">
+      <div class="card mb-3">
         <div class="form-group">
-          <label>Instituição bancária</label>
-          <select>
-            <option value="">Selecione o banco</option>
-            <option>001 — Banco do Brasil</option>
-            <option>033 — Santander</option>
-            <option>237 — Bradesco</option>
-            <option>341 — Itaú Unibanco</option>
-            <option>422 — Safra</option>
-            <option>756 — Sicoob</option>
+          <label>Conta de origem</label>
+          <select id="fromAccount">
+            <option value="">Carregando...</option>
           </select>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Agência</label>
-            <input type="text" placeholder="0000" maxlength="4" />
-          </div>
-          <div class="form-group">
-            <label>Tipo de conta</label>
-            <select>
-              <option>Corrente</option>
-              <option>Poupança</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Número da conta</label>
-            <input type="text" placeholder="00000-0" />
-          </div>
-          <div class="form-group">
-            <label>CPF / CNPJ do titular</label>
-            <input type="text" placeholder="000.000.000-00" />
-          </div>
-        </div>
         <div class="form-group">
-          <label>Nome do favorecido</label>
-          <input type="text" placeholder="Nome completo" />
+          <label>ID da conta de destino</label>
+          <input id="toAccount" type="text" placeholder="Cole o ID da conta destino (UUID)" />
+          <div style="font-size:11px;color:var(--text-hint);margin-top:4px;">O destinatário pode encontrar o ID da conta no dashboard dele.</div>
         </div>
-      </div>
-
-      <!-- Valor e agendamento -->
-      <div class="card mb-3">
         <div class="form-group">
           <label>Valor</label>
           <div class="input-prefix">
             <span class="input-prefix-label">R$</span>
-            <input type="text" class="amount-input" placeholder="0,00" style="border:none;background:transparent;font-size:18px;padding:10px 12px;" />
+            <input id="amount" type="number" step="0.01" min="0.01" placeholder="0,00" style="font-size:18px;font-weight:600;" />
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Data de envio</label>
-            <input type="date" />
-          </div>
-          <div class="form-group">
-            <label>Conta de origem</label>
-            <select>
-              <option>Corrente **** 4821</option>
-              <option>Poupança **** 9302</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
+        <div class="form-group" style="margin-bottom:0">
           <label>Descrição (opcional)</label>
-          <input type="text" placeholder="Ex: pagamento aluguel julho" />
+          <input id="description" type="text" placeholder="Ex: pagamento aluguel" />
         </div>
       </div>
 
-      <!-- Resumo -->
+      <!-- Resumo dinâmico -->
       <div class="confirm-box">
         <div class="section-label" style="margin-bottom:12px;">Resumo da operação</div>
-        <div class="confirm-row"><span class="text-muted">Tipo</span><span>TED</span></div>
-        <div class="confirm-row"><span class="text-muted">Favorecido</span><span>—</span></div>
-        <div class="confirm-row"><span class="text-muted">Banco</span><span>—</span></div>
-        <div class="confirm-row"><span class="text-muted">Data</span><span>—</span></div>
-        <div class="confirm-row"><span class="text-muted">Valor</span><span>R$ —</span></div>
-        <div class="confirm-row"><span>Total debitado</span><span>R$ —</span></div>
+        <div class="confirm-row"><span class="text-muted">Tipo</span><span>Transferência interna</span></div>
+        <div class="confirm-row"><span class="text-muted">Conta de origem</span><span id="summaryFrom">—</span></div>
+        <div class="confirm-row"><span class="text-muted">Conta de destino</span><span id="summaryTo">—</span></div>
+        <div class="confirm-row"><span class="text-muted">Descrição</span><span id="summaryDesc">—</span></div>
+        <div class="confirm-row"><span>Valor</span><span id="summaryAmount">R$ —</span></div>
       </div>
 
       <div style="display:flex;gap:10px;">
         <button class="btn btn-outline" onclick="history.back()">Cancelar</button>
-        <button class="btn btn-primary" style="flex:1">Confirmar transferência →</button>
+        <button class="btn btn-primary" id="btnTransfer" style="flex:1" onclick="doTransfer()">
+          Confirmar transferência →
+        </button>
       </div>
     </div>
   </main>
 </div>
 
 <script>
-  function selectType(btn) {
-    document.querySelectorAll('.type-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  const API = '';
+  let accounts = [];
+
+  function token() { return localStorage.getItem('token'); }
+  function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() }; }
+  function doLogout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+  async function init() {
+    if (!token()) { window.location.href = 'login.html'; return; }
+
+    const name = localStorage.getItem('userName') || 'Usuario';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitials').textContent = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+    const email = localStorage.getItem('userEmail');
+    const usersRes = await fetch(`${API}/users`, { headers: authHeaders() });
+    if (usersRes.status === 401) { doLogout(); return; }
+    const users = await usersRes.json();
+    const me = users.find(u => u.email === email);
+    if (!me) return;
+
+    const accRes = await fetch(`${API}/accounts/user/${me.id}`, { headers: authHeaders() });
+    accounts = await accRes.json();
+
+    const sel = document.getElementById('fromAccount');
+    if (!accounts.length) {
+      sel.innerHTML = '<option>Nenhuma conta disponível</option>';
+      return;
+    }
+    sel.innerHTML = accounts.map(a =>
+      `<option value="${a.id}">Conta ${a.id.slice(0,8).toUpperCase()}... · Saldo R$ ${parseFloat(a.balance).toFixed(2).replace('.',',')}</option>`
+    ).join('');
+
+    // Atualiza resumo dinamicamente
+    document.getElementById('fromAccount').addEventListener('change', updateSummary);
+    document.getElementById('toAccount').addEventListener('input', updateSummary);
+    document.getElementById('amount').addEventListener('input', updateSummary);
+    document.getElementById('description').addEventListener('input', updateSummary);
+    updateSummary();
   }
+
+  function updateSummary() {
+    const fromId = document.getElementById('fromAccount').value;
+    const toId   = document.getElementById('toAccount').value.trim();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const desc   = document.getElementById('description').value.trim();
+
+    document.getElementById('summaryFrom').textContent = fromId ? fromId.slice(0,8).toUpperCase() + '...' : '—';
+    document.getElementById('summaryTo').textContent   = toId   ? toId.slice(0,8).toUpperCase() + '...' : '—';
+    document.getElementById('summaryDesc').textContent = desc   || '—';
+    document.getElementById('summaryAmount').textContent = amount > 0 ? `R$ ${amount.toFixed(2).replace('.',',')}` : 'R$ —';
+  }
+
+  async function doTransfer() {
+    const fromId = document.getElementById('fromAccount').value;
+    const toId   = document.getElementById('toAccount').value.trim();
+    const amount = parseFloat(document.getElementById('amount').value);
+    const desc   = document.getElementById('description').value.trim();
+    const btn    = document.getElementById('btnTransfer');
+    const msgEl  = document.getElementById('msg');
+    msgEl.style.display = 'none';
+
+    if (!fromId)          { showMsg('error', 'Selecione a conta de origem.'); return; }
+    if (!toId)            { showMsg('error', 'Informe a conta de destino.'); return; }
+    if (!amount || amount <= 0) { showMsg('error', 'Informe um valor válido.'); return; }
+    if (fromId === toId)  { showMsg('error', 'Conta de origem e destino não podem ser iguais.'); return; }
+
+    btn.disabled = true; btn.textContent = 'Transferindo...';
+
+    try {
+      const res = await fetch(`${API}/accounts/${fromId}/transfer`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ toAccountId: toId, amount, description: desc || undefined })
+      });
+      const data = await res.json();
+      if (!res.ok) { showMsg('error', data.message || 'Erro na transferência.'); return; }
+
+      showMsg('success', `Transferência de R$ ${amount.toFixed(2).replace('.',',')} realizada com sucesso!`);
+      document.getElementById('toAccount').value = '';
+      document.getElementById('amount').value = '';
+      document.getElementById('description').value = '';
+      updateSummary();
+    } catch(e) {
+      showMsg('error', 'Erro de conexão. Verifique se o servidor está rodando.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Confirmar transferência →';
+    }
+  }
+
+  function showMsg(type, text) {
+    const el = document.getElementById('msg');
+    el.className = 'msg ' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  init();
 </script>
 </body>
 </html>

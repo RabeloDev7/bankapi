@@ -2,7 +2,7 @@
 
 Sistema bancário REST construído com **Spring Boot 3**, **Java 21** e **JWT**. Inclui gerenciamento de usuários, contas, transferências, PIX e autenticação segura.
 
-![CI](https://github.com/SEU_USUARIO/bankapi/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/RabeloDev7/bankapi/actions/workflows/ci.yml/badge.svg)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green)
 
@@ -64,7 +64,7 @@ Controller → Service → Repository
 
 **1. Clone o repositório**
 ```bash
-git clone https://github.com/SEU_USUARIO/bankapi.git
+git clone https://github.com/RabeloDev7/bankapi.git
 cd bankapi/bankapi
 ```
 

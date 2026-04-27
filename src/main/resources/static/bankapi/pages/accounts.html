@@ -8,17 +8,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <style>
-    .account-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-bottom: 2rem; }
+    .account-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 2rem; }
     .account-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; background: var(--bg); }
     .account-card.primary { border-color: var(--green); }
     .ac-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-hint); margin-bottom: 0.5rem; }
-    .ac-number { font-size: 12px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 1rem; }
+    .ac-id { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 1rem; }
     .ac-balance { font-size: 28px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 1rem; }
-    .ac-actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .ac-tag { display: inline-flex; padding: 2px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; background: var(--green-light); color: var(--green-dark); margin-bottom: 8px; }
     .filter-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; flex-wrap: wrap; }
     .filter-btn { padding: 6px 14px; border: 0.5px solid var(--border-md); border-radius: var(--radius-pill); font-size: 13px; cursor: pointer; background: transparent; color: var(--text-muted); }
     .filter-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
   </style>
 </head>
 <body>
@@ -36,10 +36,6 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
         Contas
       </a>
-      <a href="transactions.html" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6l4-4 4 4M8 18l4 4 4-4M4 12h16"/></svg>
-        Transações
-      </a>
       <div class="nav-section-label">Operações</div>
       <a href="transfer.html" class="nav-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -49,11 +45,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 10L21 2M3 21l8-8M3 3l8 8-8 8M21 21l-8-8 8-8"/></svg>
         Pix
       </a>
+      <div class="nav-section-label">Conta</div>
+      <a href="#" class="nav-item" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair
+      </a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="avatar">JS</div>
-        <div><div class="user-name">João Silva</div><div class="user-role">Conta corrente</div></div>
+        <div class="avatar" id="avatarInitials">--</div>
+        <div><div class="user-name" id="sidebarName">...</div><div class="user-role">Conta corrente</div></div>
       </div>
     </div>
   </aside>
@@ -64,80 +65,153 @@
         <div class="page-title">Contas</div>
         <div class="page-subtitle">Gerencie suas contas e extratos</div>
       </div>
-      <button class="btn btn-primary">+ Nova conta</button>
+      <button class="btn btn-primary" onclick="createAccount()">+ Nova conta</button>
     </div>
 
-    <!-- Cartões de conta -->
-    <div class="account-cards">
-      <div class="account-card primary">
-        <div class="ac-tag">Principal</div>
-        <div class="ac-label">Conta corrente</div>
-        <div class="ac-number">Ag. 0001 · **** **** 4821</div>
-        <div class="ac-balance">R$ 18.430,00</div>
-        <div class="ac-actions">
-          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">Extrato</button>
-          <button class="btn btn-ghost" style="font-size:13px;">Compartilhar dados</button>
-        </div>
-      </div>
-      <div class="account-card">
-        <div class="ac-label">Poupança</div>
-        <div class="ac-number">Ag. 0001 · **** **** 9302</div>
-        <div class="ac-balance">R$ 6.400,00</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:1rem;">Rendimento: 0,5% a.m. · R$ 32,00 este mês</div>
-        <div class="ac-actions">
-          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">Extrato</button>
-        </div>
-      </div>
+    <div class="account-cards" id="accountCards">
+      <div class="empty-state">Carregando contas...</div>
     </div>
 
-    <!-- Extrato unificado -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-      <div class="page-title" style="font-size:16px;">Extrato unificado</div>
-      <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">Exportar PDF</button>
+      <div class="page-title" style="font-size:16px;">Extrato</div>
     </div>
     <div class="filter-bar">
-      <button class="filter-btn active" onclick="filterActive(this)">Todos</button>
-      <button class="filter-btn" onclick="filterActive(this)">Entradas</button>
-      <button class="filter-btn" onclick="filterActive(this)">Saídas</button>
-      <button class="filter-btn" onclick="filterActive(this)">Pix</button>
-      <button class="filter-btn" onclick="filterActive(this)">TED/TEF</button>
-      <button class="filter-btn" onclick="filterActive(this)">Boleto</button>
+      <button class="filter-btn active" onclick="filterTx('ALL', this)">Todos</button>
+      <button class="filter-btn" onclick="filterTx('IN', this)">Entradas</button>
+      <button class="filter-btn" onclick="filterTx('OUT', this)">Saídas</button>
+      <button class="filter-btn" onclick="filterTx('PIX', this)">Pix</button>
     </div>
-
-    <div class="card">
-      <div class="tx-item">
-        <div class="tx-left"><div class="tx-icon in">↓</div><div><div class="tx-name">Depósito</div><div class="tx-meta">02 jul · Corrente</div></div></div>
-        <div style="text-align:right"><div class="tx-amount in">+ R$ 500,00</div><span class="badge badge-success">Concluído</span></div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left"><div class="tx-icon in">↓</div><div><div class="tx-name">Salário — Acme Corp</div><div class="tx-meta">01 jul · Corrente · TED</div></div></div>
-        <div style="text-align:right"><div class="tx-amount in">+ R$ 7.500,00</div><span class="badge badge-success">Concluído</span></div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left"><div class="tx-icon in">↓</div><div><div class="tx-name">Rendimento Poupança</div><div class="tx-meta">01 jul · Poupança</div></div></div>
-        <div style="text-align:right"><div class="tx-amount in">+ R$ 32,00</div><span class="badge badge-success">Concluído</span></div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left"><div class="tx-icon out">↑</div><div><div class="tx-name">TED para Itaú — Ana Castro</div><div class="tx-meta">30 jun · Corrente · TED</div></div></div>
-        <div style="text-align:right"><div class="tx-amount out">- R$ 1.200,00</div><span class="badge badge-warning">Processando</span></div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left"><div class="tx-icon out">↑</div><div><div class="tx-name">Pix — Maria Souza</div><div class="tx-meta">28 jun · Corrente · Pix</div></div></div>
-        <div style="text-align:right"><div class="tx-amount out">- R$ 350,00</div><span class="badge badge-success">Concluído</span></div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left"><div class="tx-icon out">↑</div><div><div class="tx-name">Boleto — Claro</div><div class="tx-meta">25 jun · Corrente · Boleto</div></div></div>
-        <div style="text-align:right"><div class="tx-amount out">- R$ 89,90</div><span class="badge badge-success">Concluído</span></div>
-      </div>
+    <div class="card" id="txList">
+      <div class="empty-state">Carregando transações...</div>
     </div>
   </main>
 </div>
 
 <script>
-  function filterActive(btn) {
+  const API = '';
+  let currentAccountId = null;
+  let allTransactions = [];
+  let currentFilter = 'ALL';
+
+  function token() { return localStorage.getItem('token'); }
+  function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() }; }
+  function doLogout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+  async function init() {
+    if (!token()) { window.location.href = 'login.html'; return; }
+
+    const name = localStorage.getItem('userName') || 'Usuario';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitials').textContent = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+    const email = localStorage.getItem('userEmail');
+    const usersRes = await fetch(`${API}/users`, { headers: authHeaders() });
+    if (usersRes.status === 401) { doLogout(); return; }
+
+    const users = await usersRes.json();
+    const me = users.find(u => u.email === email);
+    if (!me) return;
+
+    localStorage.setItem('userId', me.id);
+    await loadAccounts(me.id);
+  }
+
+  async function loadAccounts(userId) {
+    const uid = userId || localStorage.getItem('userId');
+    const res = await fetch(`${API}/accounts/user/${uid}`, { headers: authHeaders() });
+    const accounts = await res.json();
+    const el = document.getElementById('accountCards');
+
+    if (!accounts.length) {
+      el.innerHTML = '<div class="empty-state">Nenhuma conta encontrada. Clique em "+ Nova conta" para criar.</div>';
+      return;
+    }
+
+    currentAccountId = accounts[0].id;
+    el.innerHTML = accounts.map((acc, i) => `
+      <div class="account-card ${i === 0 ? 'primary' : ''}">
+        ${i === 0 ? '<div class="ac-tag">Principal</div>' : ''}
+        <div class="ac-label">Conta corrente</div>
+        <div class="ac-id">${acc.id.slice(0,8).toUpperCase()}...${acc.id.slice(-4).toUpperCase()}</div>
+        <div class="ac-balance">R$ ${parseFloat(acc.balance).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g, '.')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;" onclick="selectAccount('${acc.id}')">Ver extrato</button>
+          <button class="btn btn-ghost" style="font-size:13px;color:#c62828" onclick="deleteAccount('${acc.id}')">Encerrar</button>
+        </div>
+      </div>`).join('');
+
+    await loadTransactions(currentAccountId);
+  }
+
+  async function loadTransactions(accountId) {
+    currentAccountId = accountId;
+    const res = await fetch(`${API}/accounts/${accountId}/transactions`, { headers: authHeaders() });
+    allTransactions = await res.json();
+    renderTransactions();
+  }
+
+  function renderTransactions() {
+    const el = document.getElementById('txList');
+    const typeIn = ['DEPOSIT', 'PIX_RECEIVED'];
+    const filtered = allTransactions.filter(tx => {
+      if (currentFilter === 'ALL') return true;
+      if (currentFilter === 'IN') return typeIn.includes(tx.type);
+      if (currentFilter === 'OUT') return !typeIn.includes(tx.type);
+      if (currentFilter === 'PIX') return tx.type.startsWith('PIX');
+      return true;
+    });
+
+    if (!filtered.length) {
+      el.innerHTML = '<div class="empty-state">Nenhuma transação encontrada.</div>';
+      return;
+    }
+
+    const typeLabel = { DEPOSIT: 'Depósito', WITHDRAW: 'Saque', TRANSFER: 'Transferência', PIX_SENT: 'Pix enviado', PIX_RECEIVED: 'Pix recebido' };
+    const isIn = t => typeIn.includes(t);
+
+    el.innerHTML = filtered.map(tx => `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-icon ${isIn(tx.type) ? 'in' : 'out'}">${isIn(tx.type) ? '↓' : '↑'}</div>
+          <div>
+            <div class="tx-name">${typeLabel[tx.type] || tx.type}${tx.description ? ' — ' + tx.description : ''}</div>
+            <div class="tx-meta">${new Date(tx.createdAt).toLocaleString('pt-BR')} · ${tx.id.slice(0,8)}...</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="tx-amount ${isIn(tx.type) ? 'in' : 'out'}">${isIn(tx.type) ? '+' : '-'} R$ ${parseFloat(tx.amount).toFixed(2).replace('.',',')}</div>
+          <span class="badge badge-success">Concluído</span>
+        </div>
+      </div>`).join('');
+  }
+
+  function filterTx(type, btn) {
+    currentFilter = type;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
+    renderTransactions();
   }
+
+  function selectAccount(id) {
+    loadTransactions(id);
+  }
+
+  async function createAccount() {
+    const uid = localStorage.getItem('userId');
+    if (!uid) return;
+    const res = await fetch(`${API}/accounts?userId=${uid}`, { method: 'POST', headers: authHeaders() });
+    if (res.ok) await loadAccounts(uid);
+    else { const d = await res.json(); alert(d.message || 'Erro ao criar conta'); }
+  }
+
+  async function deleteAccount(id) {
+    if (!confirm('Encerrar esta conta? Esta ação não pode ser desfeita.')) return;
+    const res = await fetch(`${API}/accounts/${id}`, { method: 'DELETE', headers: authHeaders() });
+    if (res.ok) await loadAccounts(localStorage.getItem('userId'));
+    else { const d = await res.json(); alert(d.message || 'Erro ao encerrar conta'); }
+  }
+
+  init();
 </script>
 </body>
 </html>
