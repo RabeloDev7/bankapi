@@ -3,35 +3,35 @@ package com.leonardo.bankapi.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * Chave PIX vinculada a uma conta.
+ * Tipos suportados: EMAIL, CPF, PHONE, RANDOM
+ */
 @Entity
-@Table(name = "transactions")
+@Table(name = "pix_keys",
+       uniqueConstraints = @UniqueConstraint(columnNames = "key_value"))
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Transaction {
+public class PixKey {
 
     @Id
     private String id;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PixKeyType type;
+
+    @Column(name = "key_value", nullable = false, unique = true)
+    private String keyValue;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
-
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal amount;
-
-    /** DEPOSIT, WITHDRAW, TRANSFER, PIX_SENT, PIX_RECEIVED */
-    @Column(nullable = false)
-    private String type;
-
-    /** Descrição opcional (ex: descrição do PIX) */
-    @Column(length = 140)
-    private String description;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

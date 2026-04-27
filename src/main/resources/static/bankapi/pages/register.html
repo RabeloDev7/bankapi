@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BankAPI — Criar conta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg-surface); }
+    .wrap { width: 100%; max-width: 420px; padding: 1.5rem; }
+    .brand { font-size: 24px; font-weight: 600; letter-spacing: -0.5px; text-align: center; margin-bottom: 2rem; }
+    .brand span { color: var(--green); }
+    .error-msg { color: #e53935; font-size: 13px; margin-bottom: 1rem; display: none; }
+    .success-msg { color: var(--green); font-size: 13px; margin-bottom: 1rem; display: none; }
+    .login-link { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 1.25rem; }
+    .login-link a { color: var(--green); font-weight: 500; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand">Bank<span>API</span></div>
+
+    <div class="card">
+      <h2 style="font-size:18px;font-weight:600;margin-bottom:4px;">Criar conta</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;">Rápido, gratuito e seguro</p>
+
+      <div id="errorMsg" class="error-msg"></div>
+      <div id="successMsg" class="success-msg"></div>
+
+      <div class="form-group">
+        <label for="name">Nome completo</label>
+        <input id="name" type="text" placeholder="João Silva" />
+      </div>
+      <div class="form-group">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" placeholder="seu@email.com" />
+      </div>
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input id="senha" type="password" placeholder="Mínimo 6 caracteres" />
+      </div>
+
+      <button class="btn btn-primary btn-full" id="btnRegister" onclick="doRegister()">
+        Criar conta
+      </button>
+    </div>
+
+    <div class="login-link">
+      Já tem conta? <a onclick="window.location.href='login.html'">Entrar</a>
+    </div>
+  </div>
+
+  <script>
+    const API = '';
+
+    async function doRegister() {
+      const name  = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      const btn   = document.getElementById('btnRegister');
+
+      hideMessages();
+
+      if (!name || !email || !senha) { showError('Preencha todos os campos.'); return; }
+      if (senha.length < 6) { showError('Senha deve ter pelo menos 6 caracteres.'); return; }
+
+      btn.disabled = true;
+      btn.textContent = 'Criando...';
+
+      try {
+        const res = await fetch(`${API}/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password: senha })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.message || 'Erro ao criar conta.');
+          return;
+        }
+
+        showSuccess('Conta criada! Redirecionando para o login...');
+        setTimeout(() => window.location.href = 'login.html', 2000);
+
+      } catch (e) {
+        showError('Erro de conexão. Verifique se o servidor está rodando.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Criar conta';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg; el.style.display = 'block';
+    }
+    function showSuccess(msg) {
+      const el = document.getElementById('successMsg');
+      el.textContent = msg; el.style.display = 'block';
+    }
+    function hideMessages() {
+      document.getElementById('errorMsg').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'none';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); });
+  </script>
+</body>
+</html>

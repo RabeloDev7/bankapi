@@ -4,9 +4,11 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 import java.math.BigDecimal;
 
+@Data
 public class PixSendRequest {
 
     @NotBlank(message = "Chave PIX de destino é obrigatória")
@@ -18,13 +20,4 @@ public class PixSendRequest {
     private BigDecimal amount;
 
     private String description;
-
-    public String getPixKey() { return pixKey; }
-    public void setPixKey(String pixKey) { this.pixKey = pixKey; }
-
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
 }

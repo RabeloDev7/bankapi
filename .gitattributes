@@ -1,2 +1,13 @@
-/mvnw text eol=lf
-*.cmd text eol=crlf
+# Força o GitHub Linguist a classificar o repositório como Java,
+# ignorando os arquivos de frontend estático.
+
+# Frontend estático — não é código do projeto, é recurso servido
+src/main/resources/static/**/*.html linguist-vendored=true
+src/main/resources/static/**/*.css  linguist-vendored=true
+src/main/resources/static/**/*.js   linguist-vendored=true
+
+# Documentação e configuração — não conta na linguagem
+*.md      linguist-documentation=true
+*.yml     linguist-documentation=true
+*.xml     linguist-documentation=true
+*.properties linguist-documentation=true

@@ -16,8 +16,9 @@
     .divider::before, .divider::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
     .forgot { display: block; text-align: right; font-size: 12px; margin-top: -8px; margin-bottom: 1rem; color: var(--green); cursor: pointer; }
     .register-link { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 1.25rem; }
-    .register-link a { color: var(--green); font-weight: 500; }
+    .register-link a { color: var(--green); font-weight: 500; cursor: pointer; }
     .security-note { display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 11px; color: var(--text-hint); margin-top: 2rem; }
+    .error-msg { color: var(--red, #e53935); font-size: 13px; margin-bottom: 1rem; display: none; }
   </style>
 </head>
 <body>
@@ -28,9 +29,11 @@
       <h2 style="font-size:18px;font-weight:600;margin-bottom:4px;">Bem-vindo de volta</h2>
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:1.5rem;">Acesse sua conta com segurança</p>
 
+      <div id="errorMsg" class="error-msg"></div>
+
       <div class="form-group">
-        <label for="cpf">CPF ou e-mail</label>
-        <input id="cpf" type="text" placeholder="000.000.000-00" autocomplete="username" />
+        <label for="email">E-mail</label>
+        <input id="email" type="email" placeholder="seu@email.com" autocomplete="username" />
       </div>
 
       <div class="form-group">
@@ -38,21 +41,13 @@
         <input id="senha" type="password" placeholder="••••••••" autocomplete="current-password" />
       </div>
 
-      <a class="forgot" href="esqueci-senha.html">Esqueci minha senha</a>
-
-      <button class="btn btn-primary btn-full" onclick="window.location.href='dashboard.html'">
+      <button class="btn btn-primary btn-full" id="btnLogin" onclick="doLogin()">
         Entrar
-      </button>
-
-      <div class="divider">ou</div>
-
-      <button class="btn btn-outline btn-full">
-        Entrar com certificado digital
       </button>
     </div>
 
     <div class="register-link">
-      Não tem conta? <a href="#">Abrir conta grátis</a>
+      Não tem conta? <a onclick="goToRegister()">Abrir conta grátis</a>
     </div>
 
     <div class="security-note">
@@ -60,5 +55,72 @@
       Conexão segura SSL/TLS · BankAPI © 2025
     </div>
   </div>
+
+  <script>
+    const API = '';
+
+    async function doLogin() {
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+      const btn   = document.getElementById('btnLogin');
+      const err   = document.getElementById('errorMsg');
+
+      err.style.display = 'none';
+
+      if (!email || !senha) {
+        showError('Preencha e-mail e senha.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password: senha })
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          showError(data.message || 'Email ou senha inválidos.');
+          return;
+        }
+
+        const data = await res.json();
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('userName', data.name);
+        localStorage.setItem('userEmail', data.email);
+
+        window.location.href = 'dashboard.html';
+      } catch (e) {
+        showError('Erro de conexão. Verifique se o servidor está rodando.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Entrar';
+      }
+    }
+
+    function showError(msg) {
+      const err = document.getElementById('errorMsg');
+      err.textContent = msg;
+      err.style.display = 'block';
+    }
+
+    function goToRegister() {
+      window.location.href = 'register.html';
+    }
+
+    // Enter submits
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+
+    // Redireciona se já logado
+    if (localStorage.getItem('token')) {
+      window.location.href = 'dashboard.html';
+    }
+  </script>
 </body>
 </html>

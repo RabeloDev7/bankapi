@@ -17,12 +17,14 @@
     .account-label { font-size: 13px; opacity: 0.8; margin-bottom: 6px; }
     .account-number { font-size: 12px; opacity: 0.7; font-family: var(--font-mono); margin-top: 4px; }
     .eye-btn { background: rgba(255,255,255,0.15); border: none; border-radius: var(--radius-sm); padding: 8px 12px; color: #fff; cursor: pointer; font-size: 13px; }
+    .tx-type-icon { display:inline-block; width:32px; height:32px; border-radius:50%; text-align:center; line-height:32px; font-size:14px; }
+    .tx-type-in { background: #e8f5e9; color: #2e7d32; }
+    .tx-type-out { background: #fce4ec; color: #c62828; }
   </style>
 </head>
 <body>
 <div class="app-layout">
 
-  <!-- Sidebar (copie de components/sidebar.html) -->
   <aside class="sidebar">
     <div class="brand">Bank<span>API</span></div>
     <nav>
@@ -35,162 +37,190 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
         Contas
       </a>
-      <a href="transactions.html" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6l4-4 4 4M8 18l4 4 4-4M4 12h16"/></svg>
-        Transações
-      </a>
-      <div class="nav-section-label">Operações</div>
+      <div class="nav-section-label">Operacoes</div>
       <a href="transfer.html" class="nav-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Transferência
+        Transferencia
       </a>
       <a href="pix.html" class="nav-item">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 10L21 2M3 21l8-8M3 3l8 8-8 8M21 21l-8-8 8-8"/></svg>
         Pix
       </a>
       <div class="nav-section-label">Conta</div>
-      <a href="#" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-        Perfil
+      <a href="#" class="nav-item" onclick="doLogout()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair
       </a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="avatar">JS</div>
-        <div><div class="user-name">João Silva</div><div class="user-role">Conta corrente</div></div>
+        <div class="avatar" id="avatarInitials">--</div>
+        <div><div class="user-name" id="sidebarName">...</div><div class="user-role">Conta corrente</div></div>
       </div>
     </div>
   </aside>
 
   <main class="main-content">
-    <!-- Header -->
     <div class="page-header">
       <div>
         <div style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">Bom dia,</div>
-        <div class="page-title">João Silva</div>
+        <div class="page-title" id="headerName">...</div>
       </div>
-      <button class="btn btn-outline" style="font-size:13px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        Notificações
+      <button class="btn btn-outline" style="font-size:13px;" onclick="loadData()">
+        Atualizar
       </button>
     </div>
 
-    <!-- Saldo Principal -->
     <div class="account-banner">
       <div>
-        <div class="account-label">Saldo disponível · Conta corrente</div>
-        <div class="account-balance" id="balanceDisplay">R$ 18.430,00</div>
-        <div class="account-number">Ag. 0001 · Conta **** 4821</div>
+        <div class="account-label">Saldo disponivel - Conta corrente</div>
+        <div class="account-balance" id="balanceDisplay">R$ ---</div>
+        <div class="account-number" id="accountId">Carregando...</div>
       </div>
       <button class="eye-btn" onclick="toggleBalance()">Ocultar</button>
     </div>
 
-    <!-- Métricas -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Saldo total</div>
-        <div class="metric-value">R$ 24.830</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Entradas (julho)</div>
-        <div class="metric-value positive">+ R$ 8.200</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Saídas (julho)</div>
-        <div class="metric-value negative">- R$ 3.410</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Rendimento poupança</div>
-        <div class="metric-value positive">+ 0,8%</div>
-      </div>
-    </div>
-
-    <!-- Ações rápidas -->
-    <div class="section-label">Ações rápidas</div>
     <div class="quick-actions">
       <button class="qa-btn" onclick="window.location.href='transfer.html'">
-        <span class="qa-icon">↑</span>Transferir
+        <span class="qa-icon">&#8593;</span>Transferir
       </button>
       <button class="qa-btn" onclick="window.location.href='pix.html'">
-        <span class="qa-icon">⚡</span>Pix
+        <span class="qa-icon">&#9889;</span>Pix
       </button>
-      <button class="qa-btn">
-        <span class="qa-icon">↓</span>Receber
+      <button class="qa-btn" id="btnDeposit" onclick="quickDeposit()">
+        <span class="qa-icon">&#8595;</span>Depositar
       </button>
-      <button class="qa-btn" onclick="window.location.href='transactions.html'">
-        <span class="qa-icon">☰</span>Extrato
+      <button class="qa-btn" onclick="window.location.href='accounts.html'">
+        <span class="qa-icon">&#9776;</span>Extrato
       </button>
     </div>
 
-    <!-- Transações recentes -->
-    <div class="section-label">Transações recentes</div>
-    <div class="card" style="margin-bottom:1.5rem;">
-      <div class="tx-item">
-        <div class="tx-left">
-          <div class="tx-icon in">↓</div>
-          <div>
-            <div class="tx-name">Salário — Acme Corp</div>
-            <div class="tx-meta">01 jul 2025 · Crédito</div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div class="tx-amount in">+ R$ 7.500,00</div>
-          <span class="badge badge-success">Concluído</span>
-        </div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left">
-          <div class="tx-icon out">↑</div>
-          <div>
-            <div class="tx-name">Pix — Maria Souza</div>
-            <div class="tx-meta">28 jun 2025 · Pix</div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div class="tx-amount out">- R$ 350,00</div>
-          <span class="badge badge-success">Concluído</span>
-        </div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left">
-          <div class="tx-icon out">↑</div>
-          <div>
-            <div class="tx-name">Boleto — Claro</div>
-            <div class="tx-meta">25 jun 2025 · Boleto</div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div class="tx-amount out">- R$ 89,90</div>
-          <span class="badge badge-warning">Processando</span>
-        </div>
-      </div>
-      <div class="tx-item">
-        <div class="tx-left">
-          <div class="tx-icon in">↓</div>
-          <div>
-            <div class="tx-name">TED — Carlos Lima</div>
-            <div class="tx-meta">20 jun 2025 · TED</div>
-          </div>
-        </div>
-        <div style="text-align:right">
-          <div class="tx-amount in">+ R$ 700,00</div>
-          <span class="badge badge-success">Concluído</span>
-        </div>
-      </div>
+    <div class="section-label">Transacoes recentes</div>
+    <div class="card" id="txList" style="margin-bottom:1.5rem;">
+      <div style="text-align:center;padding:2rem;color:var(--text-muted)">Carregando...</div>
     </div>
     <div style="text-align:center">
-      <a href="transactions.html" class="btn btn-ghost">Ver todas as transações →</a>
+      <a href="accounts.html" class="btn btn-ghost">Ver todas as transacoes &rarr;</a>
     </div>
   </main>
 </div>
 
 <script>
-  let hidden = false;
-  function toggleBalance() {
-    hidden = !hidden;
-    document.getElementById('balanceDisplay').textContent = hidden ? 'R$ ••••••' : 'R$ 18.430,00';
-    document.querySelector('.eye-btn').textContent = hidden ? 'Mostrar' : 'Ocultar';
+  const API = '';
+  let currentAccountId = null;
+  let balanceHidden = false;
+  let currentBalance = 0;
+
+  function token() { return localStorage.getItem('token'); }
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token() };
   }
+
+  async function loadData() {
+    if (!token()) { window.location.href = 'login.html'; return; }
+
+    const name = localStorage.getItem('userName') || 'Usuario';
+    document.getElementById('headerName').textContent = name;
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitials').textContent = name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+    // Busca userId via /users — pega o token e decodifica email
+    try {
+      const email = localStorage.getItem('userEmail');
+      const usersRes = await fetch(`${API}/users`, { headers: authHeaders() });
+      if (usersRes.status === 401) { doLogout(); return; }
+
+      const users = await usersRes.json();
+      const me = users.find(u => u.email === email);
+      if (!me) return;
+
+      // Busca contas do usuario
+      const accRes = await fetch(`${API}/accounts/user/${me.id}`, { headers: authHeaders() });
+      const accounts = await accRes.json();
+
+      if (accounts.length === 0) {
+        // Cria conta automaticamente se nao tiver
+        const newAcc = await fetch(`${API}/accounts?userId=${me.id}`, {
+          method: 'POST', headers: authHeaders()
+        });
+        const acc = await newAcc.json();
+        currentAccountId = acc.id;
+        currentBalance = parseFloat(acc.balance) || 0;
+      } else {
+        currentAccountId = accounts[0].id;
+        currentBalance = parseFloat(accounts[0].balance) || 0;
+      }
+
+      updateBalanceDisplay();
+      document.getElementById('accountId').textContent = 'ID: ' + currentAccountId.slice(0, 8) + '...';
+
+      // Busca transacoes
+      const txRes = await fetch(`${API}/accounts/${currentAccountId}/transactions`, { headers: authHeaders() });
+      const txList = await txRes.json();
+      renderTransactions(txList.slice(0, 5));
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function updateBalanceDisplay() {
+    const el = document.getElementById('balanceDisplay');
+    el.textContent = balanceHidden ? 'R$ ......' : 'R$ ' + currentBalance.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  function toggleBalance() {
+    balanceHidden = !balanceHidden;
+    updateBalanceDisplay();
+    document.querySelector('.eye-btn').textContent = balanceHidden ? 'Mostrar' : 'Ocultar';
+  }
+
+  function renderTransactions(txs) {
+    const el = document.getElementById('txList');
+    if (!txs || txs.length === 0) {
+      el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--text-muted)">Nenhuma transacao ainda.</div>';
+      return;
+    }
+    const typeLabel = { DEPOSIT: 'Deposito', WITHDRAW: 'Saque', TRANSFER: 'Transferencia', PIX_SENT: 'Pix enviado', PIX_RECEIVED: 'Pix recebido' };
+    const isIn = t => ['DEPOSIT','PIX_RECEIVED'].includes(t);
+    el.innerHTML = txs.map(tx => `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-icon ${isIn(tx.type) ? 'in' : 'out'}">${isIn(tx.type) ? '&darr;' : '&uarr;'}</div>
+          <div>
+            <div class="tx-name">${typeLabel[tx.type] || tx.type}${tx.description ? ' - ' + tx.description : ''}</div>
+            <div class="tx-meta">${new Date(tx.createdAt).toLocaleDateString('pt-BR')} &middot; ${tx.type}</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="tx-amount ${isIn(tx.type) ? 'in' : 'out'}">${isIn(tx.type) ? '+' : '-'} R$ ${parseFloat(tx.amount).toFixed(2).replace('.',',')}</div>
+          <span class="badge badge-success">Concluido</span>
+        </div>
+      </div>`).join('');
+  }
+
+  async function quickDeposit() {
+    if (!currentAccountId) return;
+    const val = prompt('Valor do deposito (ex: 100.00):');
+    if (!val || isNaN(val) || parseFloat(val) <= 0) return;
+    try {
+      const res = await fetch(`${API}/accounts/${currentAccountId}/deposit`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ amount: parseFloat(val) })
+      });
+      if (res.ok) { await loadData(); }
+      else { const d = await res.json(); alert(d.message || 'Erro no deposito'); }
+    } catch(e) { alert('Erro de conexao'); }
+  }
+
+  function doLogout() {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  }
+
+  loadData();
 </script>
 </body>
 </html>

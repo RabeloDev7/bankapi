@@ -11,17 +11,15 @@
     .pix-tabs { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 1.5rem; gap: 0; }
     .pix-tab { padding: 10px 20px; font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--text-muted); background: none; border-top: none; border-left: none; border-right: none; transition: all 0.12s; }
     .pix-tab.active { color: var(--green); border-bottom-color: var(--green); font-weight: 500; }
-    .key-types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.25rem; }
-    .key-type { border: 0.5px solid var(--border); border-radius: var(--radius-md); padding: 14px 8px; text-align: center; cursor: pointer; font-size: 12px; color: var(--text-muted); background: var(--bg); transition: all 0.12s; }
-    .key-type.selected { border-color: var(--green); background: var(--green-light); color: var(--green-dark); font-weight: 500; }
-    .key-type-icon { display: block; font-size: 20px; margin-bottom: 6px; }
-    .my-keys { }
     .my-key-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 1.25rem; border-bottom: 0.5px solid var(--border); }
     .my-key-item:last-child { border-bottom: none; }
     .key-type-label { font-size: 11px; color: var(--text-hint); margin-bottom: 2px; }
     .key-value { font-family: var(--font-mono); font-size: 13px; }
     .panel { display: none; }
     .panel.active { display: block; }
+    .msg { font-size: 13px; margin-bottom: 1rem; padding: 10px 14px; border-radius: 8px; display:none; }
+    .msg.error { background:#fce4ec; color:#c62828; }
+    .msg.success { background:#e8f5e9; color:#2e7d32; }
   </style>
 </head>
 <body>
@@ -31,28 +29,18 @@
     <div class="brand">Bank<span>API</span></div>
     <nav>
       <div class="nav-section-label">Principal</div>
-      <a href="dashboard.html" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        Dashboard
-      </a>
-      <a href="accounts.html" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-        Contas
-      </a>
-      <div class="nav-section-label">Operações</div>
-      <a href="transfer.html" class="nav-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        Transferência
-      </a>
-      <a href="pix.html" class="nav-item active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 10L21 2M3 21l8-8M3 3l8 8-8 8M21 21l-8-8 8-8"/></svg>
-        Pix
-      </a>
+      <a href="dashboard.html" class="nav-item">Dashboard</a>
+      <a href="accounts.html" class="nav-item">Contas</a>
+      <div class="nav-section-label">Operacoes</div>
+      <a href="transfer.html" class="nav-item">Transferencia</a>
+      <a href="pix.html" class="nav-item active">Pix</a>
+      <div class="nav-section-label">Conta</div>
+      <a href="#" class="nav-item" onclick="doLogout()">Sair</a>
     </nav>
     <div class="sidebar-footer">
       <div class="user-info">
-        <div class="avatar">JS</div>
-        <div><div class="user-name">João Silva</div><div class="user-role">Conta corrente</div></div>
+        <div class="avatar" id="avatarInitials">--</div>
+        <div><div class="user-name" id="sidebarName">...</div><div class="user-role">Conta corrente</div></div>
       </div>
     </div>
   </aside>
@@ -61,191 +49,236 @@
     <div class="page-header">
       <div>
         <div class="page-title">Pix</div>
-        <div class="page-subtitle">Transferências instantâneas 24h</div>
+        <div class="page-subtitle">Transferencias instantaneas 24h</div>
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="pix-tabs">
       <button class="pix-tab active" onclick="switchTab('enviar', this)">Enviar</button>
-      <button class="pix-tab" onclick="switchTab('receber', this)">Receber / Cobrar</button>
       <button class="pix-tab" onclick="switchTab('chaves', this)">Minhas chaves</button>
-      <button class="pix-tab" onclick="switchTab('historico', this)">Histórico</button>
+      <button class="pix-tab" onclick="switchTab('historico', this)">Historico</button>
     </div>
 
     <!-- ENVIAR -->
     <div class="panel active" id="panel-enviar">
       <div style="max-width:520px">
-        <div class="section-label">Tipo de chave</div>
-        <div class="key-types">
-          <div class="key-type selected" onclick="selectKeyType(this)">
-            <span class="key-type-icon">📱</span>Celular
-          </div>
-          <div class="key-type" onclick="selectKeyType(this)">
-            <span class="key-type-icon">✉</span>E-mail
-          </div>
-          <div class="key-type" onclick="selectKeyType(this)">
-            <span class="key-type-icon">🪪</span>CPF/CNPJ
-          </div>
-          <div class="key-type" onclick="selectKeyType(this)">
-            <span class="key-type-icon">#</span>Aleatória
-          </div>
-        </div>
-
-        <div class="card mb-2">
+        <div id="sendMsg" class="msg"></div>
+        <div class="card mb-3">
           <div class="form-group">
-            <label>Chave Pix do destinatário</label>
-            <input type="text" placeholder="+55 (11) 99999-9999" />
+            <label>Chave Pix do destinatario</label>
+            <input id="pixKeyDest" type="text" placeholder="email, CPF, telefone ou chave aleatoria" />
           </div>
-          <div class="form-group" style="margin-bottom:0">
+          <div class="form-group">
             <label>Valor</label>
             <div class="input-prefix">
               <span class="input-prefix-label">R$</span>
-              <input type="text" placeholder="0,00" style="font-size:18px;font-weight:600;letter-spacing:-0.3px;" />
+              <input id="pixAmount" type="number" step="0.01" min="0.01" placeholder="0,00" style="font-size:18px;font-weight:600;" />
             </div>
           </div>
-        </div>
-
-        <div class="card mb-3">
-          <div class="form-group">
-            <label>Mensagem (opcional)</label>
-            <input type="text" placeholder="Ex: obrigado pelo jantar" />
-          </div>
           <div class="form-group" style="margin-bottom:0">
-            <label>Conta de origem</label>
-            <select>
-              <option>Corrente **** 4821 · R$ 18.430,00</option>
-              <option>Poupança **** 9302 · R$ 6.400,00</option>
-            </select>
+            <label>Descricao (opcional)</label>
+            <input id="pixDesc" type="text" placeholder="Ex: obrigado pelo jantar" />
           </div>
         </div>
-
-        <button class="btn btn-primary btn-full">Confirmar Pix →</button>
-      </div>
-    </div>
-
-    <!-- RECEBER -->
-    <div class="panel" id="panel-receber">
-      <div style="max-width:480px">
-        <div class="card mb-3">
-          <div class="section-label mb-2">Gerar cobrança Pix</div>
-          <div class="form-group">
-            <label>Valor a cobrar</label>
-            <div class="input-prefix">
-              <span class="input-prefix-label">R$</span>
-              <input type="text" placeholder="0,00" style="font-size:18px;font-weight:600;" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Descrição</label>
-            <input type="text" placeholder="Ex: produto ou serviço prestado" />
-          </div>
-          <div class="form-group" style="margin-bottom:0">
-            <label>Validade</label>
-            <select>
-              <option>30 minutos</option>
-              <option>1 hora</option>
-              <option>24 horas</option>
-              <option>Sem validade</option>
-            </select>
-          </div>
-        </div>
-        <button class="btn btn-primary btn-full">Gerar QR Code</button>
+        <button class="btn btn-primary btn-full" id="btnSendPix" onclick="sendPix()">Confirmar Pix &rarr;</button>
       </div>
     </div>
 
     <!-- CHAVES -->
     <div class="panel" id="panel-chaves">
       <div style="max-width:520px">
+        <div id="keyMsg" class="msg"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-          <div class="section-label" style="margin:0">Chaves cadastradas (2 de 5)</div>
-          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;">+ Adicionar chave</button>
+          <div class="section-label" style="margin:0">Minhas chaves</div>
+          <button class="btn btn-outline" style="font-size:13px;padding:7px 14px;" onclick="showRegisterKey()">+ Adicionar chave</button>
         </div>
-        <div class="card">
-          <div class="my-keys">
-            <div class="my-key-item">
-              <div>
-                <div class="key-type-label">Celular</div>
-                <div class="key-value">+55 (11) 98765-4321</div>
-              </div>
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-ghost" style="font-size:13px">Copiar</button>
-                <button class="btn btn-ghost" style="font-size:13px;color:var(--red)">Excluir</button>
-              </div>
-            </div>
-            <div class="my-key-item">
-              <div>
-                <div class="key-type-label">CPF</div>
-                <div class="key-value">123.456.789-00</div>
-              </div>
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-ghost" style="font-size:13px">Copiar</button>
-                <button class="btn btn-ghost" style="font-size:13px;color:var(--red)">Excluir</button>
-              </div>
-            </div>
+
+        <!-- form nova chave (oculto inicialmente) -->
+        <div class="card mb-3" id="newKeyForm" style="display:none">
+          <div class="form-group">
+            <label>Tipo de chave</label>
+            <select id="newKeyType">
+              <option value="EMAIL">E-mail</option>
+              <option value="CPF">CPF</option>
+              <option value="PHONE">Telefone</option>
+              <option value="RANDOM">Chave aleatoria</option>
+            </select>
           </div>
+          <div class="form-group" id="newKeyValueGroup">
+            <label>Valor da chave</label>
+            <input id="newKeyValue" type="text" placeholder="seu@email.com" />
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline" onclick="document.getElementById('newKeyForm').style.display='none'">Cancelar</button>
+            <button class="btn btn-primary" onclick="registerKey()">Cadastrar</button>
+          </div>
+        </div>
+
+        <div class="card" id="keysList">
+          <div style="text-align:center;padding:2rem;color:var(--text-muted)">Carregando...</div>
         </div>
       </div>
     </div>
 
-    <!-- HISTÓRICO -->
+    <!-- HISTORICO -->
     <div class="panel" id="panel-historico">
-      <div class="card">
-        <div class="tx-item">
-          <div class="tx-left">
-            <div class="tx-icon in">↓</div>
-            <div>
-              <div class="tx-name">Pix recebido — Carlos Lima</div>
-              <div class="tx-meta">02 jul 2025 · 14:32</div>
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="tx-amount in">+ R$ 200,00</div>
-            <span class="badge badge-success">Concluído</span>
-          </div>
-        </div>
-        <div class="tx-item">
-          <div class="tx-left">
-            <div class="tx-icon out">↑</div>
-            <div>
-              <div class="tx-name">Pix enviado — Maria Souza</div>
-              <div class="tx-meta">28 jun 2025 · 19:10</div>
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="tx-amount out">- R$ 350,00</div>
-            <span class="badge badge-success">Concluído</span>
-          </div>
-        </div>
-        <div class="tx-item">
-          <div class="tx-left">
-            <div class="tx-icon in">↓</div>
-            <div>
-              <div class="tx-name">Pix recebido — Ana Paula</div>
-              <div class="tx-meta">15 jun 2025 · 11:05</div>
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="tx-amount in">+ R$ 120,00</div>
-            <span class="badge badge-success">Concluído</span>
-          </div>
-        </div>
+      <div class="card" id="txListPix">
+        <div style="text-align:center;padding:2rem;color:var(--text-muted)">Carregando...</div>
       </div>
     </div>
   </main>
 </div>
 
 <script>
+  const API = '';
+  let currentAccountId = null;
+
+  function token() { return localStorage.getItem('token'); }
+  function authHeaders() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+token() }; }
+  function doLogout() { localStorage.clear(); window.location.href='login.html'; }
+
   function switchTab(id, btn) {
     document.querySelectorAll('.pix-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('panel-' + id).classList.add('active');
+    document.getElementById('panel-'+id).classList.add('active');
+    if (id === 'chaves') loadKeys();
+    if (id === 'historico') loadHistory();
   }
-  function selectKeyType(el) {
-    document.querySelectorAll('.key-type').forEach(k => k.classList.remove('selected'));
-    el.classList.add('selected');
+
+  async function init() {
+    if (!token()) { window.location.href='login.html'; return; }
+    const name = localStorage.getItem('userName') || 'Usuario';
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('avatarInitials').textContent = name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+    const email = localStorage.getItem('userEmail');
+    const usersRes = await fetch(`${API}/users`, { headers: authHeaders() });
+    const users = await usersRes.json();
+    const me = users.find(u => u.email === email);
+    if (!me) return;
+
+    const accRes = await fetch(`${API}/accounts/user/${me.id}`, { headers: authHeaders() });
+    const accounts = await accRes.json();
+    if (accounts.length === 0) {
+      const newAccRes = await fetch(`${API}/accounts?userId=${me.id}`, { method:'POST', headers: authHeaders() });
+      const acc = await newAccRes.json();
+      currentAccountId = acc.id;
+    } else {
+      currentAccountId = accounts[0].id;
+    }
   }
+
+  async function sendPix() {
+    const pixKey = document.getElementById('pixKeyDest').value.trim();
+    const amount = parseFloat(document.getElementById('pixAmount').value);
+    const description = document.getElementById('pixDesc').value.trim();
+    const btn = document.getElementById('btnSendPix');
+    const msg = document.getElementById('sendMsg');
+    msg.style.display='none';
+
+    if (!pixKey) { showMsg(msg,'error','Informe a chave Pix de destino.'); return; }
+    if (!amount || amount <= 0) { showMsg(msg,'error','Informe um valor valido.'); return; }
+
+    btn.disabled=true; btn.textContent='Enviando...';
+    try {
+      const res = await fetch(`${API}/pix/send/${currentAccountId}`, {
+        method:'POST', headers: authHeaders(),
+        body: JSON.stringify({ pixKey, amount, description })
+      });
+      const data = await res.json();
+      if (!res.ok) { showMsg(msg,'error', data.message || 'Erro ao enviar PIX.'); return; }
+      showMsg(msg,'success', `PIX de R$ ${amount.toFixed(2)} enviado com sucesso!`);
+      document.getElementById('pixKeyDest').value='';
+      document.getElementById('pixAmount').value='';
+      document.getElementById('pixDesc').value='';
+    } catch(e) { showMsg(msg,'error','Erro de conexao.'); }
+    finally { btn.disabled=false; btn.textContent='Confirmar Pix \u2192'; }
+  }
+
+  async function loadKeys() {
+    if (!currentAccountId) return;
+    const el = document.getElementById('keysList');
+    try {
+      const res = await fetch(`${API}/pix/keys/account/${currentAccountId}`, { headers: authHeaders() });
+      const keys = await res.json();
+      if (!keys.length) { el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text-muted)">Nenhuma chave cadastrada.</div>'; return; }
+      el.innerHTML = keys.map(k => `
+        <div class="my-key-item">
+          <div>
+            <div class="key-type-label">${k.type}</div>
+            <div class="key-value">${k.keyValue}</div>
+          </div>
+          <button class="btn btn-ghost" style="font-size:13px;color:#c62828" onclick="deleteKey('${k.id}')">Excluir</button>
+        </div>`).join('');
+    } catch(e) { el.innerHTML='<div style="padding:1rem;color:#c62828">Erro ao carregar chaves.</div>'; }
+  }
+
+  function showRegisterKey() {
+    document.getElementById('newKeyForm').style.display='block';
+    document.getElementById('newKeyType').addEventListener('change', function() {
+      document.getElementById('newKeyValueGroup').style.display = this.value==='RANDOM' ? 'none' : 'block';
+    });
+  }
+
+  async function registerKey() {
+    const type = document.getElementById('newKeyType').value;
+    const keyValue = type==='RANDOM' ? '' : document.getElementById('newKeyValue').value.trim();
+    const msg = document.getElementById('keyMsg');
+    msg.style.display='none';
+    if (type!=='RANDOM' && !keyValue) { showMsg(msg,'error','Informe o valor da chave.'); return; }
+    try {
+      const res = await fetch(`${API}/pix/keys`, {
+        method:'POST', headers: authHeaders(),
+        body: JSON.stringify({ type, keyValue: keyValue||undefined, accountId: currentAccountId })
+      });
+      const data = await res.json();
+      if (!res.ok) { showMsg(msg,'error', data.message||'Erro ao cadastrar chave.'); return; }
+      showMsg(msg,'success','Chave cadastrada com sucesso!');
+      document.getElementById('newKeyForm').style.display='none';
+      loadKeys();
+    } catch(e) { showMsg(msg,'error','Erro de conexao.'); }
+  }
+
+  async function deleteKey(id) {
+    if (!confirm('Excluir esta chave PIX?')) return;
+    await fetch(`${API}/pix/keys/${id}`, { method:'DELETE', headers: authHeaders() });
+    loadKeys();
+  }
+
+  async function loadHistory() {
+    if (!currentAccountId) return;
+    const el = document.getElementById('txListPix');
+    try {
+      const res = await fetch(`${API}/accounts/${currentAccountId}/transactions`, { headers: authHeaders() });
+      const txs = await res.json();
+      const pixTxs = txs.filter(t => t.type.startsWith('PIX'));
+      if (!pixTxs.length) { el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text-muted)">Nenhuma transacao PIX ainda.</div>'; return; }
+      const isIn = t => t.type==='PIX_RECEIVED';
+      el.innerHTML = pixTxs.map(tx => `
+        <div class="tx-item">
+          <div class="tx-left">
+            <div class="tx-icon ${isIn(tx)?'in':'out'}">${isIn(tx)?'&darr;':'&uarr;'}</div>
+            <div>
+              <div class="tx-name">${isIn(tx)?'Pix recebido':'Pix enviado'}${tx.description?' - '+tx.description:''}</div>
+              <div class="tx-meta">${new Date(tx.createdAt).toLocaleString('pt-BR')}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="tx-amount ${isIn(tx)?'in':'out'}">${isIn(tx)?'+':'-'} R$ ${parseFloat(tx.amount).toFixed(2).replace('.',',')}</div>
+            <span class="badge badge-success">Concluido</span>
+          </div>
+        </div>`).join('');
+    } catch(e) { el.innerHTML='<div style="padding:1rem;color:#c62828">Erro ao carregar historico.</div>'; }
+  }
+
+  function showMsg(el, type, msg) {
+    el.className='msg '+type;
+    el.textContent=msg;
+    el.style.display='block';
+  }
+
+  init();
 </script>
 </body>
 </html>

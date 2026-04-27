@@ -4,9 +4,11 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 import java.math.BigDecimal;
 
+@Data
 public class TransferRequest {
 
     @NotBlank(message = "Conta de destino é obrigatória")
@@ -18,13 +20,4 @@ public class TransferRequest {
     private BigDecimal amount;
 
     private String description;
-
-    public String getToAccountId() { return toAccountId; }
-    public void setToAccountId(String toAccountId) { this.toAccountId = toAccountId; }
-
-    public BigDecimal getAmount() { return amount; }
-    public void setAmount(BigDecimal amount) { this.amount = amount; }
-
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
 }

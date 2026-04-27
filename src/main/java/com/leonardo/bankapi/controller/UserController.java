@@ -4,6 +4,7 @@ import com.leonardo.bankapi.dto.UserRequest;
 import com.leonardo.bankapi.dto.UserResponse;
 import com.leonardo.bankapi.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,28 +19,30 @@ public class UserController {
         this.userService = userService;
     }
 
-    // CREATE
     @PostMapping
-    public UserResponse createUser(@Valid @RequestBody UserRequest request) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody UserRequest request) {
         return userService.createUser(request);
     }
 
-    // READ
     @GetMapping
-    public List<UserResponse> getUsers() {
-        return userService.getUsers();
+    public List<UserResponse> getAll() {
+        return userService.getAll();
     }
 
-    // UPDATE
+    @GetMapping("/{id}")
+    public UserResponse getById(@PathVariable Long id) {
+        return userService.getById(id);
+    }
+
     @PutMapping("/{id}")
-    public UserResponse updateUser(@PathVariable Long id,
-                                   @Valid @RequestBody UserRequest request) {
-        return userService.updateUser(id, request);
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
+        return userService.update(id, request);
     }
 
-    // DELETE
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        userService.delete(id);
     }
 }

@@ -2,16 +2,17 @@ package com.leonardo.bankapi.dto;
 
 import com.leonardo.bankapi.entity.PixKey;
 import com.leonardo.bankapi.entity.PixKeyType;
+import lombok.Value;
 
 import java.time.LocalDateTime;
 
+@Value
 public class PixKeyResponse {
-
-    private String id;
-    private PixKeyType type;
-    private String keyValue;
-    private String accountId;
-    private LocalDateTime createdAt;
+    String id;
+    PixKeyType type;
+    String keyValue;
+    String accountId;
+    LocalDateTime createdAt;
 
     public PixKeyResponse(PixKey key) {
         this.id        = key.getId();
@@ -20,10 +21,4 @@ public class PixKeyResponse {
         this.accountId = key.getAccount().getId();
         this.createdAt = key.getCreatedAt();
     }
-
-    public String getId() { return id; }
-    public PixKeyType getType() { return type; }
-    public String getKeyValue() { return keyValue; }
-    public String getAccountId() { return accountId; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
 }

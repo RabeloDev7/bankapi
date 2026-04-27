@@ -1,52 +1,31 @@
 package com.leonardo.bankapi.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
-/**
- * Representa um usuário do sistema bancário
- */
 @Entity
 @Table(name = "users")
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
-   @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    /**
-     * Nome do usuário
-     */
+    @NotBlank
+    @Column(nullable = false)
     private String name;
 
-    /**
-     * Email do usuário
-     */
+    @Email
+    @Column(unique = true, nullable = false)
     private String email;
 
-    // Construtor padrão
-    public User() {}
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    @NotBlank
+    @Column(nullable = false)
+    private String password;
 }
