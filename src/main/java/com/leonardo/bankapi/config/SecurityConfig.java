@@ -59,7 +59,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Recursos estáticos do frontend
                 .requestMatchers("/bankapi/**", "/favicon.ico").permitAll()
-                // Auth e cadastro
+                // Health check do Render
+				.requestMatchers("/actuator/health").permitAll()
+				// Auth e cadastro
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 // H2 console (remover em produção)

@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: bankapi
+    runtime: java
+    plan: free
+    region: oregon
+
+    # Render detecta Java pelo pom.xml automaticamente.
+    # rootDir aponta para onde esta o pom.xml dentro do repositorio.
+    rootDir: bankapi
+
+    buildCommand: mvn clean package -DskipTests -Pprod
+    startCommand: java -Dspring.profiles.active=prod -jar target/bankapi-1.0.0.jar
+
+    healthCheckPath: /actuator/health
+
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        sync: false          # Preenchido manualmente no dashboard do Render
+      - key: JWT_EXPIRATION
+        value: "86400000"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bankapi-db
+          property: connectionString
+
+databases:
+  - name: bankapi-db
+    databaseName: bankapi
+    user: bankapi
+    plan: free
+    region: oregon
