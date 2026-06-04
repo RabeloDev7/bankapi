@@ -2,7 +2,8 @@ package com.leonardo.bankapi.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -19,20 +20,22 @@ import javax.sql.DataSource;
  * O JDBC precisa de:
  *   jdbc:postgresql://user:pass@host/db
  *
- * Esta classe faz a conversao automaticamente,
- * eliminando a necessidade de scripts shell.
+ * Esta classe faz a conversao automaticamente via variavel de ambiente,
+ * sem depender de scripts shell ou properties intermediarias.
  */
 @Configuration
 @Profile("prod")
 public class DataSourceConfig {
 
-    @Value("${DATABASE_URL}")
-    private String databaseUrl;
+    private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
 
     @Bean
     @Primary
     public DataSource dataSource() {
-        String jdbcUrl = toJdbcUrl(databaseUrl);
+        String rawUrl = System.getenv("DATABASE_URL");
+        String jdbcUrl = toJdbcUrl(rawUrl);
+
+        log.info("==> DataSource configurado para producao");
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
@@ -49,7 +52,8 @@ public class DataSourceConfig {
     private String toJdbcUrl(String url) {
         if (url == null || url.isBlank()) {
             throw new IllegalStateException(
-                "DATABASE_URL nao configurada. Defina a variavel de ambiente no Render.");
+                "[DataSourceConfig] DATABASE_URL nao esta configurada! " +
+                "Defina a variavel de ambiente no dashboard do Render.");
         }
         if (url.startsWith("jdbc:")) {
             return url;
@@ -60,6 +64,8 @@ public class DataSourceConfig {
         if (url.startsWith("postgres://")) {
             return "jdbc:postgresql://" + url.substring("postgres://".length());
         }
-        throw new IllegalStateException("Formato de DATABASE_URL nao reconhecido: " + url);
+        throw new IllegalStateException(
+            "[DataSourceConfig] Formato de DATABASE_URL nao reconhecido: " + url +
+            ". Esperado: postgresql://user:pass@host/db");
     }
 }
