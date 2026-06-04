@@ -39,7 +39,6 @@ public class DataSourceConfig {
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
-        config.setDriverClassName("org.postgresql.Driver");
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);
         config.setConnectionTimeout(30000);
