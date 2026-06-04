@@ -1,13 +1,30 @@
-# Força o GitHub Linguist a classificar o repositório como Java,
-# ignorando os arquivos de frontend estático.
+# ── Line endings ──────────────────────────────────────────────────────────────
+# Padrao: normaliza tudo para LF no repositorio
+* text=auto
 
-# Frontend estático — não é código do projeto, é recurso servido
+# Arquivos que DEVEM ter LF mesmo no Windows (scripts Linux/Docker)
+*.sh    text eol=lf
+Dockerfile text eol=lf
+.dockerignore text eol=lf
+
+# Arquivos que podem ter CRLF no Windows
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# Binarios — sem conversao
+*.jar   binary
+*.png   binary
+*.jpg   binary
+*.ico   binary
+
+# ── GitHub Linguist ───────────────────────────────────────────────────────────
+# Ignora frontend estatico na contagem de linguagem
 src/main/resources/static/**/*.html linguist-vendored=true
 src/main/resources/static/**/*.css  linguist-vendored=true
 src/main/resources/static/**/*.js   linguist-vendored=true
 
-# Documentação e configuração — não conta na linguagem
-*.md      linguist-documentation=true
-*.yml     linguist-documentation=true
-*.xml     linguist-documentation=true
-*.properties linguist-documentation=true
+# Documentacao e config nao contam como linguagem
+*.md            linguist-documentation=true
+*.yml           linguist-documentation=true
+*.xml           linguist-documentation=true
+*.properties    linguist-documentation=true
