@@ -57,11 +57,11 @@ public class SecurityConfig {
             .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Recursos estáticos do frontend
-                .requestMatchers("/bankapi/**", "/favicon.ico").permitAll()
+                // Raiz e recursos estáticos
+                .requestMatchers("/", "/bankapi/**", "/favicon.ico").permitAll()
                 // Health check do Render
-				.requestMatchers("/actuator/health").permitAll()
-				// Auth e cadastro
+                .requestMatchers("/actuator/health").permitAll()
+                // Auth e cadastro
                 .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 // H2 console (remover em produção)
