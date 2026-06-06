@@ -115,11 +115,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- H2 - testes em memoria -->
+		<!-- H2 - dev local e testes em memoria -->
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<scope>test</scope>
+			<scope>runtime</scope>
 		</dependency>
 
 	</dependencies>
