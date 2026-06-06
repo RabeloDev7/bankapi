@@ -1,6 +1,7 @@
 package com.leonardo.bankapi.config;
 
 import com.leonardo.bankapi.auth.JwtFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,6 +25,9 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final UserDetailsService userDetailsService;
+
+    @Value("${spring.h2.console.enabled:false}")
+    private boolean h2ConsoleEnabled;
 
     public SecurityConfig(JwtFilter jwtFilter, UserDetailsService userDetailsService) {
         this.jwtFilter = jwtFilter;
@@ -53,22 +57,27 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            // Permite H2 console em dev (frames)
-            .headers(h -> h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+            .headers(h -> {
+                if (h2ConsoleEnabled) {
+                    // Permite frames apenas quando H2 console esta ativo (dev local)
+                    h.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable);
+                }
+            })
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // Raiz e recursos estáticos
-                .requestMatchers("/", "/bankapi/**", "/favicon.ico").permitAll()
-                // Health check do Render
-                .requestMatchers("/actuator/health").permitAll()
-                // Auth e cadastro
-                .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                // H2 console (remover em produção)
-                .requestMatchers("/h2-console/**").permitAll()
-                // Todo o resto exige JWT
-                .anyRequest().authenticated()
-            )
+            .authorizeHttpRequests(auth -> {
+                auth
+                    .requestMatchers("/", "/bankapi/**", "/favicon.ico").permitAll()
+                    .requestMatchers("/actuator/health").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/users").permitAll();
+
+                // H2 console apenas em dev local
+                if (h2ConsoleEnabled) {
+                    auth.requestMatchers("/h2-console/**").permitAll();
+                }
+
+                auth.anyRequest().authenticated();
+            })
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
