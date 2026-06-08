@@ -1,21 +1,27 @@
 # BankAPI
 
-Sistema bancário REST construído com **Spring Boot 3**, **Java 21** e **JWT**. Inclui gerenciamento de usuários, contas, transferências, PIX e autenticação segura.
+Sistema bancário REST completo construído com **Spring Boot 3**, **Java 21**, **JWT** e deploy na nuvem via **Render**. Inclui gerenciamento de usuários, contas bancárias, transferências, PIX e autenticação segura.
 
 ![CI](https://github.com/RabeloDev7/bankapi/actions/workflows/ci.yml/badge.svg)
 ![Java](https://img.shields.io/badge/Java-21-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-green)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen)
+![Deploy](https://img.shields.io/badge/Deploy-Render-blue)
+![Status](https://img.shields.io/badge/status-online-success)
+
+🌐 **Live:** [https://bankapi-gnf1.onrender.com](https://bankapi-gnf1.onrender.com)
 
 ---
 
 ## Funcionalidades
 
-- Cadastro e autenticação de usuários (JWT)
+- Cadastro e autenticação de usuários com **JWT**
 - Abertura e gerenciamento de contas bancárias
 - Depósito, saque e transferência entre contas
-- PIX — cadastro de chaves (EMAIL, CPF, PHONE, RANDOM) e envio instantâneo
-- Histórico de transações por conta
-- Frontend estático integrado (login, dashboard, PIX, transferência)
+- **PIX** — cadastro de chaves (EMAIL, CPF, PHONE, RANDOM) e envio instantâneo
+- Histórico completo de transações por conta
+- Frontend estático integrado (login, cadastro, dashboard, PIX, transferência, extrato)
+- Deploy containerizado via **Docker** no Render
+- CI/CD automático com **GitHub Actions**
 
 ---
 
@@ -26,13 +32,14 @@ Sistema bancário REST construído com **Spring Boot 3**, **Java 21** e **JWT**.
 | Linguagem | Java 21 |
 | Framework | Spring Boot 3.5 |
 | Segurança | Spring Security + JWT (JJWT 0.12) |
-| Persistência | Spring Data JPA + Hibernate |
-| Banco (produção) | MySQL 8 |
-| Banco (testes) | H2 in-memory |
-| Build | Maven |
+| Persistência | Spring Data JPA + Hibernate 6 |
+| Banco (produção) | PostgreSQL 18 (Render) |
+| Banco (local/testes) | H2 in-memory |
+| Build | Maven 3.9 |
 | Boilerplate | Lombok |
 | Testes | JUnit 5 + Mockito |
-| CI | GitHub Actions |
+| CI/CD | GitHub Actions |
+| Deploy | Docker + Render |
 
 ---
 
@@ -44,11 +51,12 @@ Controller → Service → Repository
    DTO         Entity
 ```
 
-- **Controllers** — entrada HTTP, validação de request, delegação ao Service
+- **Controllers** — entrada HTTP, validação via `@Valid`, delegação ao Service
 - **Services** — regras de negócio, transações `@Transactional`
 - **Repositories** — acesso a dados via Spring Data JPA
-- **DTOs** — isolam a API das entidades JPA
-- **Exceptions** — `BusinessException` (422), `ResourceNotFoundException` (404)
+- **DTOs** — isolam a API das entidades JPA (`@Value` para responses, `@Data` para requests)
+- **Exceptions** — `BusinessException` → 422, `ResourceNotFoundException` → 404, `BadCredentialsException` → 401
+- **Auth** — `JwtUtil`, `JwtFilter`, `UserDetailsServiceImpl`, `SecurityConfig` STATELESS
 
 ---
 
@@ -56,11 +64,12 @@ Controller → Service → Repository
 
 - Java 21+
 - Maven 3.9+
-- MySQL 8+ rodando localmente
+
+> Não é necessário instalar MySQL. O projeto usa **H2 in-memory** para desenvolvimento local.
 
 ---
 
-## Configuração
+## Rodando localmente
 
 **1. Clone o repositório**
 ```bash
@@ -68,47 +77,45 @@ git clone https://github.com/RabeloDev7/bankapi.git
 cd bankapi/bankapi
 ```
 
-**2. Crie o banco de dados**
-```sql
-CREATE DATABASE bank_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-**3. Configure as credenciais**
-
-Edite `src/main/resources/application.properties`:
-```properties
-spring.datasource.url=jdbc:mysql://127.0.0.1:3306/bank_app
-spring.datasource.username=root
-spring.datasource.password=SUA_SENHA
-```
-
-> Nunca commite senhas reais. Use variáveis de ambiente em produção:
-> ```bash
-> export SPRING_DATASOURCE_PASSWORD=sua_senha
-> ```
-
-**4. Execute**
+**2. Execute**
 ```bash
 mvn spring-boot:run
 ```
 
-A aplicação sobe em `http://localhost:8080`.
+A aplicação sobe em `http://localhost:8080` usando H2 in-memory automaticamente.
+
+**Console H2** (visualizar tabelas em desenvolvimento):
+```
+http://localhost:8080/h2-console
+JDBC URL: jdbc:h2:mem:bankapi_dev
+User: sa  |  Password: (vazio)
+```
 
 ---
 
 ## Frontend
 
-Acesse `http://localhost:8080/bankapi/pages/login.html` para usar o frontend integrado.
+Acesse `http://localhost:8080` — redireciona automaticamente para a tela de login.
 
-Fluxo:
-1. Crie uma conta em `/register.html`
-2. Faça login — o JWT é salvo no `localStorage`
-3. Dashboard exibe saldo e transações em tempo real
-4. PIX — cadastre chaves e envie pagamentos
+| Página | Rota |
+|---|---|
+| Login | `/bankapi/pages/login.html` |
+| Cadastro | `/bankapi/pages/register.html` |
+| Dashboard | `/bankapi/pages/dashboard.html` |
+| Contas / Extrato | `/bankapi/pages/accounts.html` |
+| Transferência | `/bankapi/pages/transfer.html` |
+| PIX | `/bankapi/pages/pix.html` |
 
 ---
 
 ## Endpoints da API
+
+### Status
+| Método | Rota | Descrição | Auth |
+|---|---|---|---|
+| `GET` | `/` | Redireciona para o frontend | Não |
+| `GET` | `/api` | Status da API (JSON) | Não |
+| `GET` | `/actuator/health` | Health check | Não |
 
 ### Auth
 | Método | Rota | Descrição | Auth |
@@ -116,13 +123,13 @@ Fluxo:
 | `POST` | `/auth/login` | Login — retorna JWT | Não |
 
 ### Usuários
-| Método | Rota | Descrição | Auth |
+| Método | Rota | Body | Auth |
 |---|---|---|---|
-| `POST` | `/users` | Cadastrar usuário | Não |
-| `GET` | `/users` | Listar usuários | Sim |
-| `GET` | `/users/{id}` | Buscar por ID | Sim |
-| `PUT` | `/users/{id}` | Atualizar usuário | Sim |
-| `DELETE` | `/users/{id}` | Remover usuário | Sim |
+| `POST` | `/users` | `{ name, email, password }` | Não |
+| `GET` | `/users` | — | Sim |
+| `GET` | `/users/{id}` | — | Sim |
+| `PUT` | `/users/{id}` | `{ name, email, password }` | Sim |
+| `DELETE` | `/users/{id}` | — | Sim |
 
 ### Contas
 | Método | Rota | Descrição | Auth |
@@ -154,35 +161,35 @@ Fluxo:
 
 **Cadastrar usuário**
 ```bash
-curl -X POST http://localhost:8080/users \
+curl -X POST https://bankapi-gnf1.onrender.com/users \
   -H "Content-Type: application/json" \
   -d '{"name":"João","email":"joao@email.com","password":"123456"}'
 ```
 
 **Login**
 ```bash
-curl -X POST http://localhost:8080/auth/login \
+curl -X POST https://bankapi-gnf1.onrender.com/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"joao@email.com","password":"123456"}'
 ```
 
 **Abrir conta**
 ```bash
-curl -X POST "http://localhost:8080/accounts?userId=1" \
+curl -X POST "https://bankapi-gnf1.onrender.com/accounts?userId=1" \
   -H "Authorization: Bearer SEU_TOKEN"
 ```
 
 **Depositar**
 ```bash
-curl -X POST http://localhost:8080/accounts/ID_DA_CONTA/deposit \
+curl -X POST https://bankapi-gnf1.onrender.com/accounts/ID_DA_CONTA/deposit \
   -H "Authorization: Bearer SEU_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{"amount":500.00,"description":"Depósito inicial"}'
+  -d '{"amount":500.00,"description":"Deposito inicial"}'
 ```
 
 **Cadastrar chave PIX**
 ```bash
-curl -X POST http://localhost:8080/pix/keys \
+curl -X POST https://bankapi-gnf1.onrender.com/pix/keys \
   -H "Authorization: Bearer SEU_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"type":"EMAIL","keyValue":"joao@email.com","accountId":"ID_DA_CONTA"}'
@@ -190,7 +197,7 @@ curl -X POST http://localhost:8080/pix/keys \
 
 **Enviar PIX**
 ```bash
-curl -X POST http://localhost:8080/pix/send/ID_DA_CONTA_ORIGEM \
+curl -X POST https://bankapi-gnf1.onrender.com/pix/send/ID_DA_CONTA_ORIGEM \
   -H "Authorization: Bearer SEU_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"pixKey":"destino@email.com","amount":100.00,"description":"Aluguel"}'
@@ -204,7 +211,7 @@ curl -X POST http://localhost:8080/pix/send/ID_DA_CONTA_ORIGEM \
 mvn test
 ```
 
-Os testes usam H2 in-memory — não é necessário MySQL para rodar a suíte.
+Os testes usam H2 in-memory — não é necessário nenhum banco externo.
 
 Cobertura atual: **22 testes unitários** nos services `UserService`, `TransactionService` e `PixService`.
 
@@ -213,38 +220,61 @@ Cobertura atual: **22 testes unitários** nos services `UserService`, `Transacti
 ## Estrutura do projeto
 
 ```
-src/
-├── main/java/com/leonardo/bankapi/
-│   ├── auth/           # JWT: JwtUtil, JwtFilter, AuthService, AuthController
-│   ├── config/         # SecurityConfig
-│   ├── controller/     # UserController, AccountController, PixController
-│   ├── dto/            # Request/Response DTOs
-│   ├── entity/         # User, Account, Transaction, PixKey, PixKeyType
-│   ├── exception/      # BusinessException, ResourceNotFoundException, GlobalExceptionHandler
-│   ├── repository/     # JPA Repositories
-│   └── service/        # UserService, AccountService, TransactionService, PixService
-├── main/resources/
-│   ├── application.properties
-│   └── static/bankapi/pages/  # Frontend HTML
-└── test/
-    ├── java/.../service/       # UserServiceTest, TransactionServiceTest, PixServiceTest
-    └── resources/application-test.properties  # H2 config
+bankapi/
+├── Dockerfile                          # Build multi-stage (Maven + JRE Alpine)
+├── render.yaml                         # Infraestrutura como código (Render)
+├── pom.xml
+└── src/
+    ├── main/
+    │   ├── java/com/leonardo/bankapi/
+    │   │   ├── auth/          # JwtUtil, JwtFilter, AuthService, AuthController
+    │   │   ├── config/        # SecurityConfig, DataSourceConfig (converte DATABASE_URL)
+    │   │   ├── controller/    # UserController, AccountController, PixController, HomeController
+    │   │   ├── dto/           # Request/Response DTOs (Lombok @Value / @Data)
+    │   │   ├── entity/        # User, Account, Transaction, PixKey, PixKeyType
+    │   │   ├── exception/     # BusinessException, ResourceNotFoundException, GlobalExceptionHandler
+    │   │   ├── repository/    # JPA Repositories
+    │   │   └── service/       # UserService, AccountService, TransactionService, PixService
+    │   └── resources/
+    │       ├── application.properties           # Perfil local (H2)
+    │       ├── application-prod.properties      # Perfil produção (PostgreSQL/Render)
+    │       └── static/bankapi/pages/            # Frontend HTML
+    └── test/
+        ├── java/.../service/                    # UserServiceTest, TransactionServiceTest, PixServiceTest
+        └── resources/application-test.properties
 ```
 
 ---
 
-## Variáveis de ambiente (produção)
+## Deploy (Render)
+
+O projeto faz deploy automático no Render a cada push na branch `main`.
+
+### Variáveis de ambiente (configuradas no Render)
 
 | Variável | Descrição |
 |---|---|
-| `SPRING_DATASOURCE_URL` | URL do MySQL |
-| `SPRING_DATASOURCE_USERNAME` | Usuário do banco |
-| `SPRING_DATASOURCE_PASSWORD` | Senha do banco |
-| `JWT_SECRET` | Chave secreta JWT (mín. 32 chars) |
-| `JWT_EXPIRATION` | Expiração em ms (padrão: 86400000 = 24h) |
+| `DATABASE_URL` | URL do PostgreSQL fornecida pelo Render (`postgresql://...`) |
+| `JWT_SECRET` | Chave secreta JWT (mínimo 32 caracteres) |
+| `JWT_EXPIRATION` | Expiração do token em ms (padrão: `86400000` = 24h) |
+| `SPRING_PROFILES_ACTIVE` | Deve ser `prod` |
+| `PORT` | Porta injetada automaticamente pelo Render (padrão `10000`) |
+
+### Como funciona o deploy
+
+1. Push para `main` dispara o GitHub Actions (build + testes com H2)
+2. Render detecta o novo commit e inicia o build Docker
+3. O `Dockerfile` usa build multi-stage: compila com Maven e roda com JRE Alpine
+4. `DataSourceConfig.java` converte `DATABASE_URL` (`postgresql://`) para o formato JDBC automaticamente
+5. Hibernate cria/atualiza as tabelas via `ddl-auto=update`
+
+> **Nota:** No plano gratuito do Render, o serviço hiberna após 15 minutos de inatividade. A primeira requisição pode demorar ~30 segundos para "acordar".
 
 ---
 
 ## Autor
 
 **Leonardo Rabelo**
+Desenvolvido como projeto de portfólio — todos os direitos reservados.
+
+[![GitHub](https://img.shields.io/badge/GitHub-RabeloDev7-black?logo=github)](https://github.com/RabeloDev7)
