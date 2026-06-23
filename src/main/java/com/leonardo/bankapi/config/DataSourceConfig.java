@@ -10,18 +10,31 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
 import javax.sql.DataSource;
-import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Configuracao do DataSource para producao.
- * Converte DATABASE_URL (postgresql://) para JDBC,
- * preservando parametros SSL necessarios para o Supabase.
+ *
+ * Usa regex para parsear DATABASE_URL pois URI.create() falha
+ * quando a senha contem caracteres especiais (@, !, #, etc.).
+ *
+ * Suporta os formatos:
+ *   postgresql://user:pass@host:port/db
+ *   postgres://user:pass@host:port/db
+ *   jdbc:postgresql://user:pass@host:port/db
  */
 @Configuration
 @Profile("prod")
 public class DataSourceConfig {
 
     private static final Logger log = LoggerFactory.getLogger(DataSourceConfig.class);
+
+    // Regex que captura user, senha (incluindo chars especiais), host, porta e banco
+    // A senha usa (.+?) lazy antes do ultimo @ para lidar com @ na senha
+    private static final Pattern DB_URL_PATTERN = Pattern.compile(
+        "(?:jdbc:)?(?:postgres(?:ql)?://)([^:]+):(.+)@([^:@/]+)(?::(\\d+))?/(.+)"
+    );
 
     @Bean
     @Primary
@@ -30,50 +43,40 @@ public class DataSourceConfig {
 
         if (rawUrl == null || rawUrl.isBlank()) {
             throw new IllegalStateException(
-                "[DataSourceConfig] DATABASE_URL nao configurada!");
+                "[DataSourceConfig] DATABASE_URL nao configurada! " +
+                "Defina a variavel de ambiente no dashboard do Render.");
         }
 
-        // Remove prefixo jdbc: se ja vier assim
-        String normalized = rawUrl.startsWith("jdbc:") ? rawUrl.substring(5) : rawUrl;
+        // Remove query string (?sslmode=require etc) — vamos adicionar via propriedade Hikari
+        String cleanUrl = rawUrl.contains("?") ? rawUrl.substring(0, rawUrl.indexOf('?')) : rawUrl;
 
-        // Normaliza postgres:// para postgresql://
-        if (normalized.startsWith("postgres://")) {
-            normalized = "postgresql://" + normalized.substring("postgres://".length());
+        Matcher matcher = DB_URL_PATTERN.matcher(cleanUrl);
+        if (!matcher.matches()) {
+            throw new IllegalStateException(
+                "[DataSourceConfig] Formato de DATABASE_URL invalido: " + cleanUrl +
+                "\nEsperado: postgresql://user:pass@host:port/db");
         }
 
-        // Extrai credenciais via URI (sem query string)
-        String withoutQuery = normalized.contains("?")
-                ? normalized.substring(0, normalized.indexOf('?'))
-                : normalized;
+        String username = matcher.group(1);
+        String password = matcher.group(2);
+        String host     = matcher.group(3);
+        String portStr  = matcher.group(4);
+        String dbName   = matcher.group(5);
+        int    port     = (portStr != null) ? Integer.parseInt(portStr) : 5432;
 
-        URI uri = URI.create(withoutQuery);
+        // Monta JDBC URL limpa sem credenciais
+        String jdbcUrl = String.format("jdbc:postgresql://%s:%d/%s", host, port, dbName);
 
-        String host     = uri.getHost();
-        int    port     = uri.getPort();
-        String dbName   = uri.getPath();
-        String userInfo = uri.getUserInfo();
-
-        String username = null;
-        String password = null;
-        if (userInfo != null && userInfo.contains(":")) {
-            int sep  = userInfo.indexOf(':');
-            username = userInfo.substring(0, sep);
-            password = userInfo.substring(sep + 1);
-        }
-
-        // Monta JDBC URL com SSL obrigatorio (necessario para Supabase)
-        String jdbcUrl = "jdbc:postgresql://" + host
-                + (port != -1 ? ":" + port : "")
-                + dbName
-                + "?sslmode=require";
-
-        log.info("==> DataSource conectando em: {}:{}{}", host,
-                port != -1 ? port : 5432, dbName);
+        log.info("==> DataSource conectando em: {}:{}/{}", host, port, dbName);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
-        if (username != null) config.setUsername(username);
-        if (password != null) config.setPassword(password);
+        config.setUsername(username);
+        config.setPassword(password);
+
+        // SSL obrigatorio para Supabase
+        config.addDataSourceProperty("sslmode", "require");
+
         config.setMaximumPoolSize(5);
         config.setMinimumIdle(1);
         config.setConnectionTimeout(30000);
