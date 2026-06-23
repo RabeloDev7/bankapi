@@ -13,14 +13,9 @@ import javax.sql.DataSource;
 import java.net.URI;
 
 /**
- * Configuracao do DataSource para producao (Render).
- *
- * O Render fornece DATABASE_URL no formato:
- *   postgresql://user:pass@host/db
- *
- * Esta classe converte para JDBC e extrai usuario/senha
- * explicitamente para o HikariCP — abordagem mais robusta
- * do que embedar credenciais na URL.
+ * Configuracao do DataSource para producao.
+ * Converte DATABASE_URL (postgresql://) para JDBC,
+ * preservando parametros SSL necessarios para o Supabase.
  */
 @Configuration
 @Profile("prod")
@@ -35,26 +30,28 @@ public class DataSourceConfig {
 
         if (rawUrl == null || rawUrl.isBlank()) {
             throw new IllegalStateException(
-                "[DataSourceConfig] DATABASE_URL nao esta configurada! " +
-                "Defina a variavel de ambiente no dashboard do Render.");
+                "[DataSourceConfig] DATABASE_URL nao configurada!");
         }
 
-        // Normaliza para postgresql:// (remove prefixo jdbc: se vier assim)
-        String normalizedUrl = rawUrl;
-        if (normalizedUrl.startsWith("jdbc:")) {
-            normalizedUrl = normalizedUrl.substring(5);
-        }
-        if (normalizedUrl.startsWith("postgres://")) {
-            normalizedUrl = "postgresql://" + normalizedUrl.substring("postgres://".length());
+        // Remove prefixo jdbc: se ja vier assim
+        String normalized = rawUrl.startsWith("jdbc:") ? rawUrl.substring(5) : rawUrl;
+
+        // Normaliza postgres:// para postgresql://
+        if (normalized.startsWith("postgres://")) {
+            normalized = "postgresql://" + normalized.substring("postgres://".length());
         }
 
-        // Faz parse da URI para extrair host, porta, banco, usuario e senha
-        URI uri = URI.create(normalizedUrl);
+        // Extrai credenciais via URI (sem query string)
+        String withoutQuery = normalized.contains("?")
+                ? normalized.substring(0, normalized.indexOf('?'))
+                : normalized;
+
+        URI uri = URI.create(withoutQuery);
 
         String host     = uri.getHost();
-        int    port     = uri.getPort(); // -1 se nao especificado
-        String dbName   = uri.getPath(); // "/bankapi_db"
-        String userInfo = uri.getUserInfo(); // "user:pass"
+        int    port     = uri.getPort();
+        String dbName   = uri.getPath();
+        String userInfo = uri.getUserInfo();
 
         String username = null;
         String password = null;
@@ -64,13 +61,14 @@ public class DataSourceConfig {
             password = userInfo.substring(sep + 1);
         }
 
-        // Monta JDBC URL sem credenciais (mais seguro e mais compativel com HikariCP)
+        // Monta JDBC URL com SSL obrigatorio (necessario para Supabase)
         String jdbcUrl = "jdbc:postgresql://" + host
                 + (port != -1 ? ":" + port : "")
-                + dbName;
+                + dbName
+                + "?sslmode=require";
 
-        log.info("==> DataSource: jdbc:postgresql://{}:{}{}", host,
-                 port != -1 ? port : 5432, dbName);
+        log.info("==> DataSource conectando em: {}:{}{}", host,
+                port != -1 ? port : 5432, dbName);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(jdbcUrl);
